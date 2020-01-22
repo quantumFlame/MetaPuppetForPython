@@ -2,7 +2,7 @@
 
 1. pip install python-socketio  
 2. pip install sanic  
-
+3. pip install regex
 
 ## node 
 1. install dependencies

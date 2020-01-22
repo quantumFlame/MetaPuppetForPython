@@ -20,43 +20,67 @@ const bot = new Wechaty({
 function send_msg_to_server(msg: any) {
     let msg_to_send: any = {
         'sender': 'wx_padplus',
-        'status': 'normal',
+        'status': 'NORMAL',
     }
     if (typeof msg === 'string') {
-        msg_to_send['plain_message'] = msg
+        msg_to_send['text'] = msg
     }
     else if (typeof msg === 'object') {
         msg_to_send = {...msg_to_send, ...msg}
     }
     else {
-        msg_to_send['status'] = 'error'
+        msg_to_send['status'] = 'ERROR'
     }
     socket.emit("message", msg_to_send)
 }
 
 function process_wx_message(msg: any) {
     console.log('process_wx_message ' + typeof msg)
-    console.log(msg)
+    // console.log(msg)
+    msg['type'] = 'CHAT_INFO'
     send_msg_to_server(msg)
 }
 
 
-function process_msg_from_server(msg: string) {
+async function process_msg_from_server(msg: any) {
     console.log('process_msg_from_server ' + typeof msg)
     console.log(msg)
-//     console.log('some thing is here')
-//     console.log(data)
-// //     https://stackoverflow.com/questions/45153848/evaluate-typescript-from-string
-//     let result = ts.transpile(data)
-//     let runnable :any = eval(result)
-//     console.log(runnable)
-//     console.log(result)
+    if ('type' in msg && msg['type'] === 'CMD_INFO') {
+        console.log('some thing is here')
+        console.log(msg['ts_code'])
+//         {
+//             const a_person  = await bot.Contact.find('会上网的机器人')
+//             console.log(a_person)
+//         }
+
+        //     https://stackoverflow.com/questions/45153848/evaluate-typescript-from-string
+        let ts_code = ts.transpile(msg['ts_code'])
+        console.log(ts_code)
+        let result :any = eval(ts_code)
+        console.log(result)
+        const r1 = await result
+        console.log(r1)
+
+
+    }
 //     socket.emit("message", runnable)
     // socket.emit("message", "message received")
 }
 
 socket.on("connect", function() {
-    socket.emit("message", "connected to server!")
+    const msg = {
+        'type': 'SOCKET_INFO',
+        'text': 'CONNECTED',
+    }
+    send_msg_to_server(msg)
+})
+
+socket.on("disconnect", function() {
+    const msg = {
+        'type': 'SOCKET_INFO',
+        'text': 'DISCONNECTED',
+    }
+    send_msg_to_server(msg)
 })
 
 socket.on("message", function(msg: string) {
