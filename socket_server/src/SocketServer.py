@@ -85,10 +85,6 @@ class SocketServer(object):
                 sender=sender,
                 room_name=room_name,
             )
-            await self.send_message_to_client(
-                room_name=self.wx_room,
-                message='server received'
-            )
         elif text == 'DISCONNECTED':
             self.sio.leave_room(sid, room_name)
         else:

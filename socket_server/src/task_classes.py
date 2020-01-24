@@ -181,7 +181,7 @@ class TestTask(TaskObject):
 
 
 if __name__ == '__main__':
-
+    # TODO: how to enable the code also work for sync style?
     def a_func(task):
         print('test exec')
         task.exec()
