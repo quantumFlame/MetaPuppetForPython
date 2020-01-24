@@ -68,15 +68,15 @@ class TaskObject(metaclass=abc.ABCMeta):
     def _start(self, **kwargs):
         raise NotImplementedError
 
-    def wait_one_exec(self, timeout=None):
+    async def wait_one_exec(self, timeout=None):
         if timeout is None:
             timeout = self.exec_time
         # exec_result has been modified in wait_multi_exec if time out
-        result = TaskObject.wait_multi_exec(tasks=[self, ], timeout=timeout)
+        result = await TaskObject.wait_multi_exec(tasks=[self, ], timeout=timeout)
         return self.exec_result
 
     @staticmethod
-    def wait_multi_exec(tasks, timeout):
+    async def wait_multi_exec(tasks, timeout):
         """
         used when many async function should be awaited
         however, we don't need this in most time, because the Task already
@@ -106,7 +106,12 @@ class TaskObject(metaclass=abc.ABCMeta):
             # gather is a higher-level function than wait
             # there must be someway to deal with excceptions using wait(), but I don't know
             # loop.run_until_complete(asyncio.wait(waiters)
-            loop.run_until_complete(asyncio.gather(*waiters, return_exceptions=False))
+            if loop.is_running():
+                print('is running')
+                await asyncio.gather(*waiters, return_exceptions=False)
+            else:
+                print('is not running')
+                loop.run_until_complete(asyncio.gather(*waiters, return_exceptions=False))
         except asyncio.TimeoutError:
             result = 'TIME_OUT'
         except Exception as e:
@@ -140,13 +145,14 @@ class TaskObject(metaclass=abc.ABCMeta):
         )
 
 class WX_CMD_Task(TaskObject):
-    essentials = {'ts_code', }
+    essentials = {'ts_code', 'need_return',  }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         utils.check_essentials(self, **kwargs)
         self.task_type = 'WX_CMD_Task'
         self.ts_code = None
+        self.need_return = False
         # attribute to be input or change
 
         utils.set_attributes(self, **kwargs)
@@ -226,3 +232,4 @@ if __name__ == '__main__':
     # result = test_task_2.wait_one_exec()
     print('test_task.exec_result 4', test_task.exec_result)
     print('test_task_2.exec_result 4', test_task_2.exec_result)
+

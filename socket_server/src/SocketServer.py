@@ -64,7 +64,6 @@ class SocketServer(object):
                         message=message,
                     )
                 elif msg_type == 'CMD_INFO':
-                    # TODO: await or not?
                     await self.process_wx_cmd_message(
                         sid=sid,
                         message=message,
@@ -86,6 +85,10 @@ class SocketServer(object):
                 sender=sender,
                 room_name=room_name,
             )
+            await self.send_message_to_client(
+                room_name=self.wx_room,
+                message='server received'
+            )
         elif text == 'DISCONNECTED':
             self.sio.leave_room(sid, room_name)
         else:
@@ -94,7 +97,7 @@ class SocketServer(object):
 
 
     async def process_wx_chat_message(self, sid, message, verbose=False):
-        print('message', 'process_wx_chat_message', message)
+        # print('message', 'process_wx_chat_message', message)
         reply = self.robot.process_message(message, verbose=True)
         # await a successful emit of our reversed message
         # back to the client
@@ -117,16 +120,18 @@ class SocketServer(object):
                 text = text.split('\n')
                 if len(text) > 1 and text[0].strip().lower() == '$debug$':
                     ts_code = '\n'.join(text[1:])
-                    await self.send_wx_cmd(ts_code)
+                    result = await self.send_wx_cmd(ts_code, need_return=True)
+                    print('cmd debug result: ', result)
 
     async def process_wx_cmd_message(self, sid, message, verbose=False):
         if not 'task_id' in message:
             return
-        task = TASK_LIST.find_task(
+        tasks = TASK_LIST.find_task(
             task_id=message['task_id'],
             find_one=True,
         )
-        task.exec(message)
+        if len(tasks) > 0:
+            tasks[0].exec(**message)
 
     async def process_custom_message(self, sid, message, verbose=False):
         # to be overwritten if needed
@@ -175,21 +180,23 @@ class SocketServer(object):
 
     async def send_wx_cmd(self,
                           ts_code,
-                          need_return=True,
+                          need_return=False,
                           life_time=3600,
                           exec_time=300):
         message = {
             'type': 'CMD_INFO',
             'ts_code': ts_code,
+            'need_return': need_return,
         }
         if need_return:
             new_task = TASK_LIST.add_task(
-                task_class_name='TestTask',
+                task_class_name='WX_CMD_Task',
                 life_time=life_time,
                 exec_time=exec_time,
                 ts_code=ts_code,
+                need_return=need_return,
             )
-            message['task_id'] = new_task['task_id']
+            message['task_id'] = new_task.task_id
         await self.send_message_to_client(
             room_name=self.wx_room,
             message=message,
@@ -200,7 +207,7 @@ class SocketServer(object):
             exec_result = None
         return exec_result
 
-    async def exec_wx_function(self, ts_code, need_return=True):
+    async def exec_wx_function(self, ts_code, need_return=False):
         wrapped_code = '''{{
             async function async_func() {{
                 {} 
@@ -208,20 +215,22 @@ class SocketServer(object):
             async_func()
         }}
         '''.format(ts_code)
-        await self.send_wx_cmd(wrapped_code, need_return=need_return)
+        exec_result = await self.send_wx_cmd(wrapped_code, need_return=need_return)
+        return exec_result
 
     async def exec_one_wx_function(self,
                                    func_name,
                                    func_paras,
-                                   need_return=True):
+                                   need_return=False):
         ts_code = '''return await {func_name}({all_paras})'''.format(
             func_name=func_name,
             all_paras=json.dumps(func_paras)[1:-1]
         )
-        await self.exec_wx_function(
+        exec_result = await self.exec_wx_function(
             ts_code=ts_code,
             need_return=need_return
         )
+        return exec_result
 
 
 
