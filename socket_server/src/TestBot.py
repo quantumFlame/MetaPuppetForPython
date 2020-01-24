@@ -29,16 +29,7 @@ class TestBot(RobotBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # check input attributes
-        # assume this is the final which is not extendable
-        all_possible_attr = utils.get_attributes(self)
-        redundant_attr = set(kwargs.keys()) - set(all_possible_attr)
-        if len(redundant_attr) > 0:
-            raise AttributeError(
-                'redundant attributes for {}'.format(
-                   self.__class__
-                )
-            )
+        utils.set_attributes(self, **kwargs)
 
     def _process_message(self, message, verbose=False):
         return_msg = {'short': None, 'long': None}

@@ -4,6 +4,7 @@ import json
 import socketio
 from sanic import Sanic
 import regex
+from TaskManager import TASK_LIST
 
 class SocketServer(object):
     def __init__(self,
@@ -99,13 +100,6 @@ class SocketServer(object):
         # back to the client
         await self.send_wx_chat(reply)
 
-        # ts_code = '''{
-        #     const a_person  = await bot.Contact.find('会上网的机器人')
-        #     console.log(a_person)
-        # }
-        # '''
-        # ts_code = '''await bot.Contact.find('会上网的机器人')'''
-
         if self.debug_mode:
             """
             we can send message as below to debug transpile
@@ -126,9 +120,16 @@ class SocketServer(object):
                     await self.send_wx_cmd(ts_code)
 
     async def process_wx_cmd_message(self, sid, message, verbose=False):
-        pass
+        if not 'task_id' in message:
+            return
+        task = TASK_LIST.find_task(
+            task_id=message['task_id'],
+            find_one=True,
+        )
+        task.exec(message)
 
     async def process_custom_message(self, sid, message, verbose=False):
+        # to be overwritten if needed
         pass
 
     async def send_message_to_client(self, message, sid=None, room_name=None):
@@ -172,15 +173,32 @@ class SocketServer(object):
             message=message
         )
 
-    async def send_wx_cmd(self, ts_code):
+    async def send_wx_cmd(self,
+                          ts_code,
+                          need_return=True,
+                          life_time=3600,
+                          exec_time=300):
         message = {
             'type': 'CMD_INFO',
             'ts_code': ts_code,
         }
+        if need_return:
+            new_task = TASK_LIST.add_task(
+                task_class_name='TestTask',
+                life_time=life_time,
+                exec_time=exec_time,
+                ts_code=ts_code,
+            )
+            message['task_id'] = new_task['task_id']
         await self.send_message_to_client(
             room_name=self.wx_room,
             message=message,
         )
+        if need_return:
+            exec_result = await new_task.wait_one_exec()
+        else:
+            exec_result = None
+        return exec_result
 
     async def exec_wx_function(self, ts_code, need_return=True):
         wrapped_code = '''{{
@@ -190,7 +208,7 @@ class SocketServer(object):
             async_func()
         }}
         '''.format(ts_code)
-        await self.send_wx_cmd(wrapped_code)
+        await self.send_wx_cmd(wrapped_code, need_return=need_return)
 
     async def exec_one_wx_function(self,
                                    func_name,
