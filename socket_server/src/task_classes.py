@@ -113,6 +113,7 @@ class TaskObject(metaclass=abc.ABCMeta):
                 print('is not running')
                 loop.run_until_complete(asyncio.gather(*waiters, return_exceptions=False))
         except asyncio.TimeoutError:
+            print('result', 'time out')
             result = 'TIME_OUT'
         except Exception as e:
             print('Error in wait_multi_exec: ', e)
@@ -216,20 +217,23 @@ if __name__ == '__main__':
     print('test_task.exec_result 2', test_task.exec_result )
     print('test_task_2.exec_result 2', test_task_2.exec_result )
 
-    result = test_task.wait_one_exec()
-    print('result 3', result)
-    print('test_task.exec_result 3', test_task.exec_result)
-    print('test_task_2.exec_result 3', test_task_2.exec_result)
+    async def b_func():
+        result = await test_task.wait_one_exec()
+        print('result 3', result)
+        print('test_task.exec_result 3', test_task.exec_result)
+        print('test_task_2.exec_result 3', test_task_2.exec_result)
 
+        await TaskObject.wait_multi_exec(
+            [
+                test_task,
+                test_task_2,
+            ],
+            timeout=test_task_2.exec_time
+        )
+        # result = test_task_2.wait_one_exec()
+        print('test_task.exec_result 4', test_task.exec_result)
+        print('test_task_2.exec_result 4', test_task_2.exec_result)
 
-    TaskObject.wait_multi_exec(
-        [
-            test_task,
-            test_task_2,
-        ],
-        timeout=test_task_2.exec_time
-    )
-    # result = test_task_2.wait_one_exec()
-    print('test_task.exec_result 4', test_task.exec_result)
-    print('test_task_2.exec_result 4', test_task_2.exec_result)
-
+    loop = asyncio.get_event_loop()
+    # loop.run_until_complete(asyncio.ensure_future(b_func()))
+    loop.run_until_complete(b_func())

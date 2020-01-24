@@ -239,6 +239,8 @@ if __name__ == '__main__':
         robot=a_bot,
         debug_mode=True
     )
+    # TODO: solve timeout problem
+    # https://stackoverflow.com/questions/47875007/flask-socket-io-frequent-time-outs
     a_server.run(port=8080)
     
     
