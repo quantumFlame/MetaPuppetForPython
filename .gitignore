@@ -113,7 +113,7 @@ venv.bak/
 
 scratch/
 independent_scripts/generate_config.py
-
+socket_server/generated/
 
 
 

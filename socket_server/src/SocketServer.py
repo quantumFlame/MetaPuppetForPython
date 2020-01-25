@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import json
+import threading
+import time
 
 import socketio
 from sanic import Sanic
 import regex
 from TaskManager import TASK_LIST
+import utils
 
 class SocketServer(object):
     def __init__(self,
@@ -97,7 +100,7 @@ class SocketServer(object):
         reply = self.robot.process_message(message, verbose=True)
         # await a successful emit of our reversed message
         # back to the client
-        await self.send_wx_chat(reply)
+        # await self.send_wx_chat(reply)
 
         if self.debug_mode:
             """
@@ -116,7 +119,7 @@ class SocketServer(object):
                 text = text.split('\n')
                 if len(text) > 1 and text[0].strip().lower() == '$debug$':
                     ts_code = '\n'.join(text[1:])
-                    result = await self.send_wx_cmd(ts_code, need_return=True)
+                    result = await self.async_send_wx_cmd(ts_code, need_return=True)
                     print('cmd debug result: ', result)
 
     async def process_wx_cmd_message(self, sid, message, verbose=False):
@@ -174,7 +177,7 @@ class SocketServer(object):
             message=message
         )
 
-    async def send_wx_cmd(self,
+    async def async_send_wx_cmd(self,
                           ts_code,
                           need_return=False,
                           life_time=3600,
@@ -203,7 +206,23 @@ class SocketServer(object):
             exec_result = None
         return exec_result
 
-    async def exec_wx_function(self, ts_code, need_return=False):
+    def send_wx_cmd(self,
+                    ts_code,
+                    need_return=False,
+                    life_time=3600,
+                    exec_time=300):
+        loop = utils.get_event_loop()
+        r = loop.run_until_complete(
+            self.async_send_wx_cmd(
+                ts_code=ts_code,
+                need_return=need_return,
+                life_time=life_time,
+                exec_time=exec_time,
+            )
+        )
+        return r
+
+    async def async_exec_wx_function(self, ts_code, need_return=False):
         wrapped_code = '''{{
             async function async_func() {{
                 {} 
@@ -211,24 +230,57 @@ class SocketServer(object):
             async_func()
         }}
         '''.format(ts_code)
-        exec_result = await self.send_wx_cmd(wrapped_code, need_return=need_return)
+        exec_result = await self.async_send_wx_cmd(wrapped_code, need_return=need_return)
         return exec_result
 
-    async def exec_one_wx_function(self,
-                                   func_name,
-                                   func_paras,
-                                   need_return=False):
+    def exec_wx_function(self, ts_code, need_return=False):
+        loop = utils.get_event_loop()
+        r = loop.run_until_complete(
+            self.async_exec_wx_function(
+                ts_code=ts_code,
+                need_return=need_return,
+            )
+        )
+        return r
+
+    async def async_exec_one_wx_function(self,
+                                         func_name,
+                                         func_paras,
+                                         need_return=False):
+        """
+
+        :param func_name: full path to func (e.g. bot.Contact.findAll)
+        :param func_paras: a list
+        :param need_return:
+        :return:
+        """
         ts_code = '''return await {func_name}({all_paras})'''.format(
             func_name=func_name,
             all_paras=json.dumps(func_paras)[1:-1]
         )
-        exec_result = await self.exec_wx_function(
+        print('ts_code', ts_code)
+        exec_result = await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=need_return
         )
         return exec_result
 
-
+    def exec_one_wx_function(self,
+                             func_name,
+                             func_paras,
+                             need_return=False):
+        # thread pool
+        # https://stackoverflow.com/questions/6893968/
+        # how-to-get-the-return-value-from-a-thread-in-python
+        loop = utils.get_event_loop()
+        r = loop.run_until_complete(
+            self.async_exec_one_wx_function(
+                func_name=func_name,
+                func_paras=func_paras,
+                need_return=need_return,
+            )
+        )
+        return r
 
 # We kick off our server
 if __name__ == '__main__':
@@ -241,7 +293,30 @@ if __name__ == '__main__':
     )
     # TODO: solve timeout problem
     # https://stackoverflow.com/questions/47875007/flask-socket-io-frequent-time-outs
-    a_server.run(port=8080)
-    
-    
+    threading.Timer(
+        1,
+        a_server.run,
+        kwargs={
+            'port': 8080
+        },
+    ).start()
+    time.sleep(30)
+    for i in range(1):
+        time.sleep(5)
+        r = a_server.exec_one_wx_function(
+            func_name='bot.Contact.findAll',
+            func_paras=[],
+            need_return=True,
+        )
+        print('r', r)
+        with open('../generated/contacts_20200125.json', 'w') as fw:
+            json.dump(r, fw, indent=2)
+        # r = a_server.exec_wx_function(
+        #     ts_code='''const a_person = await bot.Contact.find('何坦瑨')
+        #     console.log(a_person)
+        #     await a_person.say('hi')
+        #     ''',
+        #     need_return=False,
+        # )
+        # print('r', r)
     

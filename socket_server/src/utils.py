@@ -59,6 +59,22 @@ class Event_ts(asyncio.Event):
         #FIXME: The _loop attribute is not documented as public api!
         self._loop.call_soon_threadsafe(super().set)
 
+def get_event_loop():
+    try:
+        loop = asyncio.get_event_loop()
+    except:
+        loop =  asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    if loop.is_running():
+        raise ValueError(
+            'loop is running in get_event_loop(). '
+            'By design, this function is only called by sync functions. '
+            'Please make sure loop is not running, '
+            'otherwise, call the async version instead or wrap the parent '
+            'funtion which called this one in a new thread to avoid '
+            'conflict with current loop '
+        )
+    return loop
 
 if __name__ == '__main__':
     import task_classes

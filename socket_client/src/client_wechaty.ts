@@ -42,7 +42,7 @@ function process_wx_message(msg: any) {
     console.log('process_wx_message ' + typeof msg)
     // console.log(msg)
     msg['type'] = 'CHAT_INFO'
-    send_msg_to_server(msg)
+    // send_msg_to_server(msg)
 }
 
 
@@ -50,22 +50,23 @@ async function process_msg_from_server(msg: any) {
     console.log('process_msg_from_server ' + typeof msg)
     console.log(msg)
     if ('type' in msg &&
-        msg['type'] === 'CMD_INFO' &&
-        'need_return' in msg &&
-        msg['need_return'] === true &&
-        'task_id' in msg
+        msg['type'] === 'CMD_INFO'
     ) {
         //     https://stackoverflow.com/questions/45153848/evaluate-typescript-from-string
         let ts_code = ts.transpile(msg['ts_code'])
         let future_obj :any = eval(ts_code)
-        const result = await future_obj
+        let result = await future_obj
         console.log(result)
-        const return_msg = {
-            'type': 'CMD_INFO',
-            'task_id': msg['task_id'],
-            'cmd_return': result || null,
+        if ('need_return' in msg &&
+            msg['need_return'] === true &&
+            'task_id' in msg) {
+            const return_msg = {
+                'type': 'CMD_INFO',
+                'task_id': msg['task_id'],
+                'cmd_return': result || null,
+            }
+            send_msg_to_server(return_msg)
         }
-        send_msg_to_server(return_msg)
     }
 //     socket.emit("message", runnable)
     // socket.emit("message", "message received")

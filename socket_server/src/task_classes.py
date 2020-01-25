@@ -182,11 +182,95 @@ class TestTask(TaskObject):
 
 
 if __name__ == '__main__':
+    from time_classes import Time
     # TODO: how to enable the code also work for sync style?
+    def create_loop():
+        loop_1 =  asyncio.new_event_loop()
+        asyncio.set_event_loop(loop_1)
+        async def wait_sec(n):
+            await asyncio.sleep(n)
+            print('slept {} seconds'.format(n))
+        loop_1.run_until_complete(asyncio.wait([
+            wait_sec(3),
+            wait_sec(6),
+            wait_sec(9),
+            wait_sec(12),
+            wait_sec(15),
+            wait_sec(18),
+        ]))
+
+
     def a_func(task):
         print('test exec')
         task.exec()
 
+    threading.Timer(
+        1,
+        create_loop,
+        kwargs={
+        },
+    ).start()
+    # create_loop()
+    print('Time 6', Time('Now'))
+    print()
+    time.sleep(2)
+    print('Time 7', Time('Now'))
+    print()
+
+
+
+    # loop_1 = asyncio.get_event_loop()
+    # print('Time 8', Time('Now'))
+    # print(loop_1.is_running())
+    # print()
+
+
+    def run_loop():
+        loop_1 = utils.get_event_loop()
+        if loop_1.is_running():
+            raise ValueError(
+                'loop is running in run_loop. '
+                'please make sure loop is not running, '
+                'otherwise, call the async version instead'
+            )
+        # loop_1 =  asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop_1)
+        test_task_3 = TestTask(
+            life_time=3600,
+            exec_time=10,
+            task_type='task 3'
+
+        )
+        threading.Timer(
+            3,
+            a_func,
+            kwargs={
+                'task': test_task_3,
+            },
+        ).start()
+        print('Time 4', Time('Now'))
+        print(test_task_3.exec_result)
+        print()
+        r = loop_1.run_until_complete(asyncio.wait([test_task_3.wait_one_exec()])
+
+        )
+        print('Time 5', Time('Now'))
+        print('test_task_3.exec_result', test_task_3.exec_result)
+        print('r', r)
+        print()
+
+
+    run_loop()
+    # threading.Timer(
+    #     1,
+    #     run_loop,
+    #     kwargs={
+    #     },
+    # ).start()
+
+
+
+    exit()
     test_task = TestTask(
         life_time=3600,
         exec_time=10,
