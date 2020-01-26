@@ -17,6 +17,10 @@ const bot = new Wechaty({
     name, // generate xxxx.memory-card.json and save login data for the next login
 })
 
+function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
+
 function send_msg_to_server(msg: any) {
     let msg_to_send: any = {
         'sender': 'wx_padplus',
@@ -42,7 +46,7 @@ function process_wx_message(msg: any) {
     console.log('process_wx_message ' + typeof msg)
     // console.log(msg)
     msg['type'] = 'CHAT_INFO'
-    // send_msg_to_server(msg)
+    send_msg_to_server(msg)
 }
 
 
@@ -68,8 +72,6 @@ async function process_msg_from_server(msg: any) {
             send_msg_to_server(return_msg)
         }
     }
-//     socket.emit("message", runnable)
-    // socket.emit("message", "message received")
 }
 
 socket.on("connect", function() {

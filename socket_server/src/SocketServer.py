@@ -301,22 +301,13 @@ if __name__ == '__main__':
         },
     ).start()
     time.sleep(30)
-    for i in range(1):
-        time.sleep(5)
+    for i in range(10):
+        time.sleep(1)
         r = a_server.exec_one_wx_function(
             func_name='bot.Contact.findAll',
             func_paras=[],
             need_return=True,
         )
         print('r', r)
-        with open('../generated/contacts_20200125.json', 'w') as fw:
-            json.dump(r, fw, indent=2)
-        # r = a_server.exec_wx_function(
-        #     ts_code='''const a_person = await bot.Contact.find('何坦瑨')
-        #     console.log(a_person)
-        #     await a_person.say('hi')
-        #     ''',
-        #     need_return=False,
-        # )
-        # print('r', r)
+
     
