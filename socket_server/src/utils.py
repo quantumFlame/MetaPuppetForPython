@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import inspect
+from threading import Thread
+
 
 def get_attributes(obj, no_private_attr=True):
     all_attr = dir(obj)
@@ -75,6 +77,20 @@ def get_event_loop():
             'conflict with current loop '
         )
     return loop
+
+def start_loop_in_thread(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+def new_loop_thread():
+    loop = asyncio.new_event_loop()
+    t = Thread(
+        target=start_loop_in_thread,
+        args=(loop,)
+    )
+    t.start()
+    return loop, t
+
 
 if __name__ == '__main__':
     import task_classes

@@ -28,6 +28,7 @@ class SocketServer(object):
         self.debug_mode = debug_mode
 
     def create_app(self):
+        self.server_loop, self.server_thread = utils.new_loop_thread()
         if self.server_mode != 'sanic':
             raise NotImplementedError
         else:
@@ -38,15 +39,26 @@ class SocketServer(object):
             self.app = Sanic()
             self.sio.attach(self.app)
 
+
     def run(self, host='0.0.0.0', port=8080):
         threading.Timer(
             10,
             self.robot.main_func,
             kwargs={},
         ).start()
-
-        self.app.run(host=host, port=port)
-        # web.run_app(self.app, host=host, port=port)
+        # run sanic background
+        # https://sanic.readthedocs.io/en/latest/sanic/deploying.html
+        # https://stackoverflow.com/questions/51610074/how-to-run-an-aiohttp-server-in-a-thread
+        self.server = self.app.create_server(
+            host=host,
+            port=port,
+            return_asyncio_server=True
+        )
+        # task = asyncio.ensure_future(self.server)
+        # self.app.run(host=host, port=port)
+        asyncio.run_coroutine_threadsafe(self.server, self.server_loop)
+        # or
+        # self.server_loop.call_soon_threadsafe(asyncio.ensure_future, self.server)
 
     def add_room(self, sender, room_name):
         self.rooms['all_rooms'].add(room_name)
