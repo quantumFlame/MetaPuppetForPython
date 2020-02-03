@@ -109,7 +109,7 @@ venv.bak/
 */config.json
 */package-lock.json
 */dist
-*memory-card.jsonls
+*memory-card.json
 
 scratch/
 independent_scripts/generate_config.py

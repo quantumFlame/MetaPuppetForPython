@@ -1,0 +1,9 @@
+{
+  "server": {
+    "host": "localhost",
+    "port": 8080
+  },
+  "token": {
+    "padplus": "YOUR_PADPLUS_TOKEN"
+  }
+}
