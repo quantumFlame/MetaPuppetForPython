@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import json
 import threading
 import time
@@ -15,6 +16,7 @@ class SocketServer(object):
                  server_mode='sanic',
                  debug_mode=False):
         self.robot = robot
+        self.robot.add_server(self)
         self.server_mode = server_mode
         self.create_app()
         self.create_response_functions()
@@ -37,7 +39,14 @@ class SocketServer(object):
             self.sio.attach(self.app)
 
     def run(self, host='0.0.0.0', port=8080):
+        threading.Timer(
+            10,
+            self.robot.main_func,
+            kwargs={},
+        ).start()
+
         self.app.run(host=host, port=port)
+        # web.run_app(self.app, host=host, port=port)
 
     def add_room(self, sender, room_name):
         self.rooms['all_rooms'].add(room_name)
@@ -93,14 +102,13 @@ class SocketServer(object):
         else:
             pass
 
-
-
     async def process_wx_chat_message(self, sid, message, verbose=False):
         # print('message', 'process_wx_chat_message', message)
         reply = self.robot.process_message(message, verbose=True)
         # await a successful emit of our reversed message
         # back to the client
-        # await self.send_wx_chat(reply)
+        print('receive', message)
+        await self.send_wx_chat(reply)
 
         if self.debug_mode:
             """
@@ -211,6 +219,16 @@ class SocketServer(object):
                     need_return=False,
                     life_time=3600,
                     exec_time=300):
+        """
+        The sync functions here only work for windows and also block the thread
+        try not to use this
+
+        :param ts_code:
+        :param need_return:
+        :param life_time:
+        :param exec_time:
+        :return:
+        """
         loop = utils.get_event_loop()
         r = loop.run_until_complete(
             self.async_send_wx_cmd(
@@ -234,6 +252,14 @@ class SocketServer(object):
         return exec_result
 
     def exec_wx_function(self, ts_code, need_return=False):
+        """
+        The sync functions here only work for windows and also block the thread
+        try not to use this
+
+        :param ts_code:
+        :param need_return:
+        :return:
+        """
         loop = utils.get_event_loop()
         r = loop.run_until_complete(
             self.async_exec_wx_function(
@@ -269,6 +295,15 @@ class SocketServer(object):
                              func_name,
                              func_paras,
                              need_return=False):
+        """
+        The sync functions here only work for windows and also block the thread
+        try not to use this
+
+        :param func_name:
+        :param func_paras:
+        :param need_return:
+        :return:
+        """
         # thread pool
         # https://stackoverflow.com/questions/6893968/
         # how-to-get-the-return-value-from-a-thread-in-python
@@ -291,23 +326,24 @@ if __name__ == '__main__':
         robot=a_bot,
         debug_mode=True
     )
-    # TODO: solve timeout problem
-    # https://stackoverflow.com/questions/47875007/flask-socket-io-frequent-time-outs
-    threading.Timer(
-        1,
-        a_server.run,
-        kwargs={
-            'port': 8080
-        },
-    ).start()
-    time.sleep(30)
-    for i in range(10):
-        time.sleep(1)
-        r = a_server.exec_one_wx_function(
-            func_name='bot.Contact.findAll',
-            func_paras=[],
-            need_return=True,
-        )
-        print('r', r)
-
-    
+    a_server.run()
+    # # TODO: solve timeout problem
+    # # https://stackoverflow.com/questions/47875007/flask-socket-io-frequent-time-outs
+    # threading.Timer(
+    #     1,
+    #     a_server.run,
+    #     kwargs={
+    #         'port': 8080
+    #     },
+    # ).start()
+    # time.sleep(30)
+    # for i in range(10):
+    #     time.sleep(1)
+    #     r = a_server.exec_one_wx_function(
+    #         func_name='bot.Contact.findAll',
+    #         func_paras=[],
+    #         need_return=True,
+    #     )
+    #     print('r', r)
+    #
+    #

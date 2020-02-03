@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 
 from RobotBase import RobotBase
 import utils
@@ -37,7 +38,10 @@ class TestBot(RobotBase):
         return_msg['long'] = {'msg_status': 'received'}
         return return_msg
 
-
+    def _main_func(self, verbose=False):
+        # loop = asyncio.get_event_loop()
+        # print('loop.is_running()', loop.is_running())
+        print('here')
 
 
 if __name__ == '__main__':
