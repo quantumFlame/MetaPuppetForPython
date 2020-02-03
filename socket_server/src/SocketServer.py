@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import json
+import random
 import threading
 import time
 
@@ -14,12 +15,15 @@ class SocketServer(object):
     def __init__(self,
                  robot,
                  server_mode='sanic',
+                 num_async_threads=3,
                  debug_mode=False):
         self.robot = robot
         self.robot.add_server(self)
         self.server_mode = server_mode
         self.create_app()
         self.create_response_functions()
+        self.num_async_threads=num_async_threads
+        self.create_async_threads()
         # room is {sender: room} pairs
         self.rooms = {
             'all_rooms': set(),
@@ -39,13 +43,24 @@ class SocketServer(object):
             self.app = Sanic()
             self.sio.attach(self.app)
 
+    def create_async_threads(self):
+        if not self.num_async_threads >= 1:
+            print(
+                'At least one async thread is required! '
+                'self.num_async_threads={}'.format(self.num_async_threads)
+            )
+        self.async_loops = []
+        self.async_threads = []
+        for _ in range(self.num_async_threads):
+            loop, t = utils.new_loop_thread()
+            self.async_loops.append(loop)
+            self.async_threads.append(t)
 
     def run(self, host='0.0.0.0', port=8080):
-        threading.Timer(
-            10,
-            self.robot.main_func,
-            kwargs={},
-        ).start()
+        # start socket server
+        # --- sync version ---
+        # self.app.run(host=host, port=port)
+        # --- async version ---
         # run sanic background
         # https://sanic.readthedocs.io/en/latest/sanic/deploying.html
         # https://stackoverflow.com/questions/51610074/how-to-run-an-aiohttp-server-in-a-thread
@@ -54,11 +69,13 @@ class SocketServer(object):
             port=port,
             return_asyncio_server=True
         )
-        # task = asyncio.ensure_future(self.server)
-        # self.app.run(host=host, port=port)
         asyncio.run_coroutine_threadsafe(self.server, self.server_loop)
         # or
         # self.server_loop.call_soon_threadsafe(asyncio.ensure_future, self.server)
+
+    def run_coroutine_in_random_thread(self, coro):
+        loop = random.choice(self.async_loops)
+        asyncio.run_coroutine_threadsafe(coro, loop)
 
     def add_room(self, sender, room_name):
         self.rooms['all_rooms'].add(room_name)
@@ -83,14 +100,18 @@ class SocketServer(object):
                 )
             elif sender.startswith('wx_'):
                 if msg_type == 'CHAT_INFO':
-                    await self.process_wx_chat_message(
-                        sid=sid,
-                        message=message,
+                    self.run_coroutine_in_random_thread(
+                        self.process_wx_chat_message(
+                            sid=sid,
+                            message=message,
+                        )
                     )
                 elif msg_type == 'CMD_INFO':
-                    await self.process_wx_cmd_message(
-                        sid=sid,
-                        message=message,
+                    self.run_coroutine_in_random_thread(
+                        self.process_wx_cmd_message(
+                            sid=sid,
+                            message=message,
+                        )
                     )
             else:
                 await self.process_custom_message(
@@ -99,22 +120,25 @@ class SocketServer(object):
                 )
 
     async def process_socket_message(self, sid, message, verbose=False):
+        print('process_socket_message question thread', threading.currentThread().getName())
         sender = message['sender']
         room_name = self.wx_room if sender.startswith('wx_') else sender
         text = message.get('text', '')
         if text == 'CONNECTED':
-            print('sender, sid, room_name', sender, sid, room_name)
+            print('CONNECTED: sender, sid, room_name', sender, sid, room_name)
             self.sio.enter_room(sid, room_name)
             self.add_room(
                 sender=sender,
                 room_name=room_name,
             )
         elif text == 'DISCONNECTED':
+            print('DISCONNECTED: sender, sid, room_name', sender, sid, room_name)
             self.sio.leave_room(sid, room_name)
         else:
             pass
 
     async def process_wx_chat_message(self, sid, message, verbose=False):
+        print('process_wx_chat_message question thread', threading.currentThread().getName())
         # print('message', 'process_wx_chat_message', message)
         reply = self.robot.process_message(message, verbose=True)
         # await a successful emit of our reversed message
@@ -143,6 +167,7 @@ class SocketServer(object):
                     print('cmd debug result: ', result)
 
     async def process_wx_cmd_message(self, sid, message, verbose=False):
+        print('process_wx_cmd_message question thread', threading.currentThread().getName())
         if not 'task_id' in message:
             return
         tasks = TASK_LIST.find_task(
@@ -232,7 +257,7 @@ class SocketServer(object):
                     life_time=3600,
                     exec_time=300):
         """
-        The sync functions here only work for windows and also block the thread
+        The sync functions only works in a queue and blocks the thread
         try not to use this
 
         :param ts_code:
@@ -265,7 +290,7 @@ class SocketServer(object):
 
     def exec_wx_function(self, ts_code, need_return=False):
         """
-        The sync functions here only work for windows and also block the thread
+        The sync functions only works in a queue and blocks the thread
         try not to use this
 
         :param ts_code:
@@ -308,7 +333,7 @@ class SocketServer(object):
                              func_paras,
                              need_return=False):
         """
-        The sync functions here only work for windows and also block the thread
+        The sync functions only works in a queue and blocks the thread
         try not to use this
 
         :param func_name:
@@ -336,9 +361,16 @@ if __name__ == '__main__':
     a_bot = TestBot(name='test')
     a_server = SocketServer(
         robot=a_bot,
+        num_async_threads=3,
         debug_mode=True
     )
     a_server.run()
+
+    print(
+        'Please make the client is connected '
+        'before run the following codes'
+    )
+
     # # TODO: solve timeout problem
     # # https://stackoverflow.com/questions/47875007/flask-socket-io-frequent-time-outs
     # threading.Timer(

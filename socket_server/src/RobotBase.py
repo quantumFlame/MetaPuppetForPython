@@ -20,11 +20,3 @@ class RobotBase(metaclass=abc.ABCMeta):
 
     def get_name(self):
         return self.name
-
-
-    def main_func(self, verbose=False):
-        self._main_func(verbose=verbose)
-
-    @abc.abstractmethod
-    def _main_func(self, verbose=False):
-        raise NotImplementedError
