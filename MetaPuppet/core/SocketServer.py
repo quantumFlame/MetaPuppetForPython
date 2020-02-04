@@ -156,7 +156,7 @@ class SocketServer(object):
         # print('receive', message)
         if reply is not None and isinstance(reply, dict):
             reply['ori_msg'] = message
-            await self.send_wx_chat(reply)
+            await self.send_wx_chat(reply, sid=sid)
 
         if self.debug_mode:
             """
@@ -222,19 +222,21 @@ class SocketServer(object):
         #     message_to_send
         # )
 
-    async def send_wx_chat(self, message):
+    async def send_wx_chat(self, message, sid=None):
         if not isinstance(message, dict):
             raise TypeError(
                 'message should be a dict but {}'.format(type(message))
             )
         message['type'] = 'CHAT_INFO'
         await self.send_message_to_client(
+            sid=sid,
             room_name=self.wx_room,
             message=message
         )
 
     async def async_send_wx_cmd(self,
                           ts_code,
+                          sid=None,
                           need_return=False,
                           life_time=3600,
                           exec_time=300):
@@ -253,6 +255,7 @@ class SocketServer(object):
             )
             message['task_id'] = new_task.task_id
         await self.send_message_to_client(
+            sid=sid,
             room_name=self.wx_room,
             message=message,
         )
@@ -371,7 +374,7 @@ if __name__ == '__main__':
     a_bot = TestBot(name='test')
     a_server = SocketServer(
         robot=a_bot,
-        num_async_threads=5,
+        num_async_threads=3,
         debug_mode=True
     )
     a_server.run()
