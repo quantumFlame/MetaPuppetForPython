@@ -77,6 +77,18 @@ class SocketServer(object):
         loop = random.choice(self.async_loops)
         return asyncio.run_coroutine_threadsafe(coro, loop)
 
+    def run_coroutine_in_new_thread(self, coro):
+        def run_coro(loop, coro):
+            asyncio.set_event_loop(loop)
+            r = loop.run_until_complete(coro)
+            return r
+
+        loop = asyncio.new_event_loop()
+        threading.Thread(
+            target=run_coro,
+            args=(loop, coro)
+        ).start()
+
     def add_room(self, sender, room_name):
         self.rooms['all_rooms'].add(room_name)
         self.rooms[sender] = room_name
