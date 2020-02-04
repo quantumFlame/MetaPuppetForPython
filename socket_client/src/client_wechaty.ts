@@ -1,8 +1,9 @@
 // with ES6 import
 import * as io from 'socket.io-client'
 import * as ts from 'typescript'
-import { Wechaty       } from 'wechaty'
+import { Wechaty,       } from 'wechaty'
 import { PuppetPadplus } from 'wechaty-puppet-padplus'
+import { FileBox }  from 'file-box'
 import QrcodeTerminal from 'qrcode-terminal'
 import * as config from '../config.json'
 
@@ -70,6 +71,50 @@ async function process_msg_from_server(msg: any) {
                 'cmd_return': result || null,
             }
             send_msg_to_server(return_msg)
+        }
+    }
+    else if ('type' in msg &&
+        msg['type'] == 'CHAT_INFO'
+    ) {
+        let say_content:any = undefined
+        if (msg['wx_msg_type'] == 'TEXT') {
+            say_content = msg['text']
+        }
+        else if (msg['wx_msg_type'] == 'FILE') {
+            say_content = FileBox.fromFile(msg['path'])
+        }
+        if (say_content) {
+            let recover_msg_success = true
+            try {
+                const ori_msg = bot.Message.load(msg['ori_msg']['id'])
+                await ori_msg.ready()
+                console.log('ori_msg', ori_msg)
+                await ori_msg.say(say_content)
+            } catch (e) {
+                recover_msg_success = false
+            }
+            if (recover_msg_success === false) {
+                if ('roomId' in msg['ori_msg']['payload'] &&
+                    msg['ori_msg']['payload']['roomId']
+                ) {
+                    try {
+                        const ori_room = bot.Room.load(msg['ori_msg']['payload']['roomId'])
+                        await ori_room.ready()
+                        console.log('ori_room', ori_room)
+                        await ori_room.say(say_content)
+                    } catch (e) {}
+                }
+                else if ('fromId' in msg['ori_msg']['payload'] &&
+                    msg['ori_msg']['payload']['fromId']
+                ) {
+                    try {
+                        const ori_contact = bot.Contact.load(msg['ori_msg']['payload']['fromId'])
+                        await ori_contact.ready()
+                        console.log('ori_contact', ori_contact)
+                        await ori_contact.say(say_content)
+                    } catch (e) {}
+                }
+            }
         }
     }
 }

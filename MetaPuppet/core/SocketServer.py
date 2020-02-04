@@ -142,7 +142,9 @@ class SocketServer(object):
         # await a successful emit of our reversed message
         # back to the client
         # print('receive', message)
-        await self.send_wx_chat(reply)
+        if reply is not None and isinstance(reply, dict):
+            reply['ori_msg'] = message
+            await self.send_wx_chat(reply)
 
         if self.debug_mode:
             """

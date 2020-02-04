@@ -34,13 +34,20 @@ class TestBot(RobotBase):
         utils.set_attributes(self, **kwargs)
 
     async def _process_message(self, message, verbose=False):
-        return_msg = {'short': None, 'long': None}
-        # return_msg['long'] = 'Received: {}'.format(message)
-        time.sleep(10)
-        return_msg['long'] = {'msg_status': 'received'}
+        return_msg = None
+        if (self.server.debug_mode
+            and 'payload' in message
+        ):
+            text = message['payload']['text']
+            text = text.split('\n')
+            if len(text) > 1 and text[0].strip().lower() == '$debug text$':
+                new_text = ('\n'.join(text[1:]))[::-1]
+                if len(new_text) > 0:
+                    return_msg = {
+                        'wx_msg_type': 'TEXT',
+                        'text': new_text
+                    }
         return return_msg
-
-
 
 
 if __name__ == '__main__':

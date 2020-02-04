@@ -15,10 +15,30 @@ class MyBot(RobotBase):
 
     async def _process_message(self, message, verbose=False):
         #  -------------edit following code for simple tasks-----------------------
-        return_msg = {'short': None, 'long': None}
-        # return_msg['long'] = 'Received: {}'.format(message)
-        time.sleep(10)
-        return_msg['long'] = {'msg_status': 'received'}
+        return_msg = None
+        if (self.server.debug_mode
+            and 'payload' in message
+        ):
+            text = message['payload']['text']
+            text = text.split('\n')
+            if len(text) > 1 and text[0].strip().lower() == '$debug text$':
+                new_text = ('\n'.join(text[1:]))[::-1]
+                if len(new_text) > 0:
+                    return_msg = {
+                        'wx_msg_type': 'TEXT',
+                        'text': new_text
+                    }
+            if len(text) > 1 and text[0].strip().lower() == '$debug file$':
+                test_files = [
+                    '../example/test0.png',
+                    '../example/test1.gif',
+                ]
+                new_text = ('\n'.join(text[1:]))
+                if len(new_text) > 0:
+                    return_msg = {
+                        'wx_msg_type': 'FILE',
+                        'path': test_files[len(new_text)%len(test_files)],
+                    }
         return return_msg
 
 # async version
@@ -89,24 +109,24 @@ if __name__ == '__main__':
     )
     a_server.run()
 
-    print(
-        'Please make the client is connected '
-        'before run the following codes'
-    )
-    time.sleep(20)
-
-    #  -------------edit following code for simple tasks-----------------------
-    # async version
-    # better to use async version because sync version would block io
-    a_server.run_coroutine_in_random_thread(
-        async_foo(a_server)
-    )
-    a_server.run_coroutine_in_random_thread(
-        async_bar(a_server)
-    )
-
-    # sync version
-    # this is only for demo
-    # sync code is not recommended
-    foo(a_server)
-    bar(a_server)
+    # print(
+    #     'Please make sure the client is connected '
+    #     'before run the following codes'
+    # )
+    # time.sleep(20)
+    #
+    # #  -------------edit following code for simple tasks-----------------------
+    # # async version
+    # # better to use async version because sync version would block io
+    # a_server.run_coroutine_in_random_thread(
+    #     async_foo(a_server)
+    # )
+    # a_server.run_coroutine_in_random_thread(
+    #     async_bar(a_server)
+    # )
+    #
+    # # sync version
+    # # this is only for demo
+    # # sync code is not recommended
+    # foo(a_server)
+    # bar(a_server)
