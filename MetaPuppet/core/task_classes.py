@@ -157,7 +157,6 @@ class WX_CMD_Task(TaskObject):
         utils.set_attributes(self, **kwargs)
 
     def _exec(self, **kwargs):
-        time.sleep(5)
         result = 'ERROR'
         if 'cmd_return' in kwargs:
             result = kwargs['cmd_return']
@@ -181,7 +180,7 @@ class TestTask(TaskObject):
 
 if __name__ == '__main__':
     from time_classes import Time
-    # TODO: how to enable the code also work for sync style?
+
     def create_loop():
         loop_1 =  asyncio.new_event_loop()
         asyncio.set_event_loop(loop_1)

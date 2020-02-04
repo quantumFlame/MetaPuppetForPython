@@ -53,7 +53,6 @@ function process_wx_message(msg: any) {
 
 async function process_msg_from_server(msg: any) {
     console.log('process_msg_from_server ' + typeof msg)
-    console.log(msg)
     if ('type' in msg &&
         msg['type'] === 'CMD_INFO'
     ) {
@@ -61,7 +60,6 @@ async function process_msg_from_server(msg: any) {
         let ts_code = ts.transpile(msg['ts_code'])
         let future_obj :any = eval(ts_code)
         let result = await future_obj
-        console.log(result)
         if ('need_return' in msg &&
             msg['need_return'] === true &&
             'task_id' in msg) {
@@ -88,7 +86,6 @@ async function process_msg_from_server(msg: any) {
             try {
                 const ori_msg = bot.Message.load(msg['ori_msg']['id'])
                 await ori_msg.ready()
-                console.log('ori_msg', ori_msg)
                 await ori_msg.say(say_content)
             } catch (e) {
                 recover_msg_success = false
@@ -100,7 +97,6 @@ async function process_msg_from_server(msg: any) {
                     try {
                         const ori_room = bot.Room.load(msg['ori_msg']['payload']['roomId'])
                         await ori_room.ready()
-                        console.log('ori_room', ori_room)
                         await ori_room.say(say_content)
                     } catch (e) {}
                 }
@@ -110,7 +106,6 @@ async function process_msg_from_server(msg: any) {
                     try {
                         const ori_contact = bot.Contact.load(msg['ori_msg']['payload']['fromId'])
                         await ori_contact.ready()
-                        console.log('ori_contact', ori_contact)
                         await ori_contact.say(say_content)
                     } catch (e) {}
                 }
