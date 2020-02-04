@@ -217,10 +217,10 @@ class SocketServer(object):
                 message_to_send,
                 room=room_name
             )
-        # print(
-        #     'message emitted to sid {} room_name {}'.format(sid, room_name),
-        #     message_to_send
-        # )
+        print(
+            'message emitted to sid {} room_name {}'.format(sid, room_name),
+            message_to_send
+        )
 
     async def send_wx_chat(self, message, sid=None):
         if not isinstance(message, dict):
