@@ -111,7 +111,7 @@ if __name__ == '__main__':
     a_bot = MyBot(name='test')
     a_server = SocketServer(
         robot=a_bot,
-        num_async_threads=5,
+        num_async_threads=1,
         debug_mode=True
     )
     a_server.run()

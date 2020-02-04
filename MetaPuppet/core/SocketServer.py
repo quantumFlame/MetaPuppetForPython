@@ -15,7 +15,7 @@ class SocketServer(object):
     def __init__(self,
                  robot,
                  server_mode='sanic',
-                 num_async_threads=3,
+                 num_async_threads=1,
                  debug_mode=False):
         self.robot = robot
         self.robot.add_server(self)
@@ -112,19 +112,29 @@ class SocketServer(object):
                 )
             elif sender.startswith('wx_'):
                 if msg_type == 'CHAT_INFO':
-                    self.run_coroutine_in_random_thread(
-                        self.process_wx_chat_message(
-                            sid=sid,
-                            message=message,
-                        )
+                    await self.process_wx_chat_message(
+                        sid=sid,
+                        message=message,
                     )
+                    # it is supposed to be faster, but actually slower
+                    # i don't know why, need some help
+                    # self.run_coroutine_in_random_thread(
+                    #     self.process_wx_chat_message(
+                    #         sid=sid,
+                    #         message=message,
+                    #     )
+                    # )
                 elif msg_type == 'CMD_INFO':
-                    self.run_coroutine_in_random_thread(
-                        self.process_wx_cmd_message(
-                            sid=sid,
-                            message=message,
-                        )
+                    await self.process_wx_cmd_message(
+                        sid=sid,
+                        message=message,
                     )
+                    # self.run_coroutine_in_random_thread(
+                    #     self.process_wx_cmd_message(
+                    #         sid=sid,
+                    #         message=message,
+                    #     )
+                    # )
             else:
                 await self.process_custom_message(
                     sid=sid,
@@ -156,7 +166,7 @@ class SocketServer(object):
         # print('receive', message)
         if reply is not None and isinstance(reply, dict):
             reply['ori_msg'] = message
-            await self.send_wx_chat(reply, sid=sid)
+            await self.send_wx_chat(reply)
 
         if self.debug_mode:
             """
@@ -217,10 +227,10 @@ class SocketServer(object):
                 message_to_send,
                 room=room_name
             )
-        print(
-            'message emitted to sid {} room_name {}'.format(sid, room_name),
-            message_to_send
-        )
+        # print(
+        #     'message emitted to sid {} room_name {}'.format(sid, room_name),
+        #     message_to_send
+        # )
 
     async def send_wx_chat(self, message, sid=None):
         if not isinstance(message, dict):
@@ -374,7 +384,7 @@ if __name__ == '__main__':
     a_bot = TestBot(name='test')
     a_server = SocketServer(
         robot=a_bot,
-        num_async_threads=3,
+        num_async_threads=1,
         debug_mode=True
     )
     a_server.run()
