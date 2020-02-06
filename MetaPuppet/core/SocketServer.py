@@ -112,29 +112,27 @@ class SocketServer(object):
                 )
             elif sender.startswith('wx_'):
                 if msg_type == 'CHAT_INFO':
-                    await self.process_wx_chat_message(
-                        sid=sid,
-                        message=message,
-                    )
-                    # it is supposed to be faster, but actually slower
-                    # i don't know why, need some help
-                    # self.run_coroutine_in_random_thread(
-                    #     self.process_wx_chat_message(
-                    #         sid=sid,
-                    #         message=message,
-                    #     )
+                    # await self.process_wx_chat_message(
+                    #     sid=sid,
+                    #     message=message,
                     # )
+                    self.run_coroutine_in_random_thread(
+                        self.process_wx_chat_message(
+                            sid=sid,
+                            message=message,
+                        )
+                    )
                 elif msg_type == 'CMD_INFO':
-                    await self.process_wx_cmd_message(
-                        sid=sid,
-                        message=message,
-                    )
-                    # self.run_coroutine_in_random_thread(
-                    #     self.process_wx_cmd_message(
-                    #         sid=sid,
-                    #         message=message,
-                    #     )
+                    # await self.process_wx_cmd_message(
+                    #     sid=sid,
+                    #     message=message,
                     # )
+                    self.run_coroutine_in_random_thread(
+                        self.process_wx_cmd_message(
+                            sid=sid,
+                            message=message,
+                        )
+                    )
             else:
                 await self.process_custom_message(
                     sid=sid,
@@ -216,17 +214,19 @@ class SocketServer(object):
         else:
             message_to_send['status'] = 'ERROR'
         if sid is not None:
-            await self.sio.emit(
+            emit_coro = self.sio.emit(
                 'message',
                 message_to_send,
                 to=sid,
             )
+            asyncio.run_coroutine_threadsafe(emit_coro, self.server_loop)
         else:
-            await self.sio.emit(
+            emit_coro = self.sio.emit(
                 'message',
                 message_to_send,
                 room=room_name
             )
+            asyncio.run_coroutine_threadsafe(emit_coro, self.server_loop)
         # print(
         #     'message emitted to sid {} room_name {}'.format(sid, room_name),
         #     message_to_send
