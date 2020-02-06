@@ -157,7 +157,7 @@ class SocketServer(object):
             pass
 
     async def process_wx_chat_message(self, sid, message, verbose=False):
-        print('message', 'process_wx_chat_message', message)
+        # print('message', 'process_wx_chat_message', message)
         reply = await self.robot.process_message(message, verbose=True)
         # await a successful emit of our reversed message
         # back to the client
