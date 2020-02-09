@@ -4,6 +4,7 @@ import json
 import random
 import threading
 import time
+from pprint import pprint
 
 import socketio
 from sanic import Sanic
@@ -41,6 +42,8 @@ class SocketServer(object):
             # https://python-socketio.readthedocs.io/en/latest/server.html
             self.sio = socketio.AsyncServer(async_mode='sanic')
             self.app = Sanic()
+            self.app.config.KEEP_ALIVE_TIMEOUT = 1800
+            self.app.config.WEBSOCKET_MAX_SIZE = 1024 * 1024 * 100
             self.sio.attach(self.app)
 
     def create_async_threads(self):
@@ -67,7 +70,7 @@ class SocketServer(object):
         self.server = self.app.create_server(
             host=host,
             port=port,
-            return_asyncio_server=True
+            return_asyncio_server=True,
         )
         asyncio.run_coroutine_threadsafe(self.server, self.server_loop)
         # or
