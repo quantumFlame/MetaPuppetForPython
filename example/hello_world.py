@@ -12,8 +12,6 @@ class MyBot(RobotBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        MetaPuppet.utils.set_attributes(self, **kwargs)
-
     async def _process_message(self, message, verbose=False):
         #  -------------edit following code for simple tasks-----------------------
         return_msg = None

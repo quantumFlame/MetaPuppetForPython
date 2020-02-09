@@ -31,7 +31,6 @@ class TestBot(RobotBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        utils.set_attributes(self, **kwargs)
 
     async def _process_message(self, message, verbose=False):
         return_msg = None

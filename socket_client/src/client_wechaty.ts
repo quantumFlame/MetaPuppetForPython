@@ -135,12 +135,12 @@ socket.on("message", function(msg: any) {
 })
 
 bot
-  .on('scan', (qrcode, status) => {
+  .on('scan', (qrcode: any, status: any) => {
     QrcodeTerminal.generate(qrcode, {
       small: true
     })
   })
-  .on('message', msg => {
+  .on('message', (msg: any) => {
     process_wx_message(msg)
   })
   .start()
