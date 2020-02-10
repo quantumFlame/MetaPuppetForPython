@@ -10,10 +10,29 @@ Install:
     pip install .
 
     cd socket_client
+    # install node.js
+    # https://github.com/nodesource/distributions/blob/master/README.md
+    # Using Ubuntu
+    curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    npm install -g ts-node
+    npm install -g typescript  
+    sudo apt-get install autoconf
+    sudo apt-get install libtool
+
     npm install 
-    (before you run, you need a wechaty token and 
-    create the config.json file following 
-    the example config.example.json)
+    # or    
+    # rm -rf node_modules package-lock.json 
+    # npm install wechaty@latest
+    # npm install wechaty-puppet-padplus@next
+    # npm install qrcode-terminal
+    # npm install socket.io-client
+    # npm install @types/socket.io-client
+    # npm install @types/node
+    
+    # (before you run, you need a wechaty token and 
+    # create the config.json file following 
+    # the example config.example.json)
     ts-node src/client_wechaty.ts
 
 Use:

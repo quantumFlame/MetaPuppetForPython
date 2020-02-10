@@ -309,6 +309,7 @@ if __name__ == '__main__':
                 test_task,
                 test_task_2,
             ],
+            # TODO: why it is still timeout in successful exec?
             timeout=test_task_2.exec_time
         )
         # result = test_task_2.wait_one_exec()

@@ -7,15 +7,14 @@ import { FileBox }  from 'file-box'
 import QrcodeTerminal from 'qrcode-terminal'
 import * as config from '../config.json'
 
-const token = config.token.padplus
 const socket = io.connect(`http://${config.server.host}:${config.server.port}`)
-const puppet = new PuppetPadplus({
-    token,
-})
+const token = config.token.padplus
+const puppet = 'wechaty-puppet-padplus'
 const name  = 'bot-padplus'
 const bot = new Wechaty({
-    puppet,
-    name, // generate xxxx.memory-card.json and save login data for the next login
+  name,
+  puppet,
+  puppetOptions: { token }, // generate xxxx.memory-card.json and save login data for the next login
 })
 
 function delay(ms: number) {

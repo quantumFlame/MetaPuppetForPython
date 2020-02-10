@@ -86,6 +86,21 @@ def foo(server):
     if rooms is not None:
         print('sync: len(rooms)', len(rooms))
         print(rooms[0])
+        ts_code = '''
+            const a_room = bot.Room.load(\'{}\')
+            await a_room.ready()
+            console.log(a_room)
+            const members = await a_room.findAll()
+            return members
+        '''.format(rooms[0]['id'])
+        # 12680986140@chatroom
+        members = server.exec_wx_function(
+            ts_code=ts_code,
+            need_return=True,
+        )
+        if members is not None:
+            print('len(members)', len(members))
+            print(members[0])
     else:
         print('sync: rooms not found')
 
@@ -103,6 +118,13 @@ def bar(server):
     else:
         print('sync: contacts not found')
 
+def get_userself(server):
+    contact_self = server.exec_one_wx_function(
+        func_name='bot.userSelf',
+        func_paras=[],
+        need_return=True,
+    )
+    print('contact_self', contact_self)
 
 if __name__ == '__main__':
     # init
@@ -144,6 +166,10 @@ if __name__ == '__main__':
     ).start()
     threading.Thread(
         target=bar,
+        args=(a_server,)
+    ).start()
+    threading.Thread(
+        target=get_userself,
         args=(a_server,)
     ).start()
 
