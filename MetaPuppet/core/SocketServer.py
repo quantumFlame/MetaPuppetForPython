@@ -43,6 +43,7 @@ class SocketServer(object):
             self.sio = socketio.AsyncServer(async_mode='sanic')
             self.app = Sanic()
             self.app.config.KEEP_ALIVE_TIMEOUT = 1800
+            self.app.config.GRACEFUL_SHUTDOWN_TIMEOUT = 2000
             self.app.config.WEBSOCKET_MAX_SIZE = 1024 * 1024 * 100
             self.sio.attach(self.app)
 
@@ -109,6 +110,7 @@ class SocketServer(object):
             sender = message['sender']
             msg_type = message.get('type', '')
             if msg_type == 'SOCKET_INFO':
+                print('message', message)
                 await self.process_socket_message(
                     sid=sid,
                     message=message
@@ -147,15 +149,12 @@ class SocketServer(object):
         room_name = self.wx_room if sender.startswith('wx_') else sender
         text = message.get('text', '')
         if text == 'CONNECTED':
-            print('CONNECTED: sender, sid, room_name', sender, sid, room_name)
+            print('{}: sender, sid, room_name'.format(text), sender, sid, room_name)
             self.sio.enter_room(sid, room_name)
             self.add_room(
                 sender=sender,
                 room_name=room_name,
             )
-        elif text == 'DISCONNECTED':
-            print('DISCONNECTED: sender, sid, room_name', sender, sid, room_name)
-            self.sio.leave_room(sid, room_name)
         else:
             pass
 

@@ -7,7 +7,9 @@ import { FileBox }  from 'file-box'
 import QrcodeTerminal from 'qrcode-terminal'
 import * as config from '../config.json'
 
-const socket = io.connect(`http://${config.server.host}:${config.server.port}`)
+const socket = io.connect(
+    `http://${config.server.host}:${config.server.port}`
+)
 const token = config.token.padplus
 const puppet = 'wechaty-puppet-padplus'
 const name  = 'bot-padplus'
@@ -114,6 +116,7 @@ async function process_msg_from_server(msg: any) {
 }
 
 socket.on("connect", function() {
+    console.log('CONNECTED')
     const msg = {
         'type': 'SOCKET_INFO',
         'text': 'CONNECTED',
@@ -121,12 +124,8 @@ socket.on("connect", function() {
     send_msg_to_server(msg)
 })
 
-socket.on("disconnect", function() {
-    const msg = {
-        'type': 'SOCKET_INFO',
-        'text': 'DISCONNECTED',
-    }
-    send_msg_to_server(msg)
+socket.on("disconnect", function(reason: any) {
+    console.log('DISCONNECTED')
 })
 
 socket.on("message", function(msg: any) {
