@@ -115,8 +115,9 @@ async function process_msg_from_server(msg: any) {
     }
 }
 
-socket.on("connect", function() {
+socket.on("connect", async function() {
     console.log('CONNECTED')
+    await delay(5000)
     const msg = {
         'type': 'SOCKET_INFO',
         'text': 'CONNECTED',

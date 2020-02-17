@@ -8,7 +8,7 @@ from . import utils
 '''
 function needed;
 
-media-file-bot.js
+media-FILE-bot.js
 
 send_file(
 send_msg
