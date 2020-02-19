@@ -41,6 +41,7 @@ function send_msg_to_server(msg: any) {
         console.log('msg_to_send')
         console.log(msg_to_send)
     }
+    // TODO: do we need await here?
     socket.emit("message", msg_to_send)
 }
 
@@ -127,6 +128,7 @@ socket.on("connect", async function() {
 
 socket.on("disconnect", function(reason: any) {
     console.log('DISCONNECTED')
+
 })
 
 socket.on("message", function(msg: any) {
