@@ -85,6 +85,9 @@ async function process_msg_from_server(msg: any) {
         }
         if (say_content) {
             let recover_msg_success = true
+            // currently send back to message sender by defauly
+            // maybe enable to send to anybody in the future
+            // (combine send_text() with this function)
             try {
                 const ori_msg = bot.Message.load(msg['ori_msg']['id'])
                 await ori_msg.ready()
