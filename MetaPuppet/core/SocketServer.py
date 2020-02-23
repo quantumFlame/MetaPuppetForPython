@@ -166,7 +166,7 @@ class SocketServer(object):
         # print('receive', message)
         if reply is not None and isinstance(reply, dict):
             reply['ori_msg'] = message
-            await self.send_wx_chat(reply)
+            self.send_wx_chat(reply)
 
         if self.debug_mode:
             """
@@ -202,7 +202,7 @@ class SocketServer(object):
         # to be overwritten if needed
         pass
 
-    async def send_message_to_client(self, message, sid=None, room_name=None):
+    def send_message_to_client(self, message, sid=None, room_name=None):
         """
         actually this function can be defined w/o async
         would it become too complex that async is necessary?
@@ -238,18 +238,14 @@ class SocketServer(object):
                 room=room_name
             )
             asyncio.run_coroutine_threadsafe(emit_coro, self.server_loop)
-        # print(
-        #     'message emitted to sid {} room_name {}'.format(sid, room_name),
-        #     message_to_send
-        # )
 
-    async def send_wx_chat(self, message, sid=None):
+    def send_wx_chat(self, message, sid=None):
         if not isinstance(message, dict):
             raise TypeError(
                 'message should be a dict but {}'.format(type(message))
             )
         message['type'] = 'CHAT_INFO'
-        await self.send_message_to_client(
+        self.send_message_to_client(
             sid=sid,
             room_name=self.wx_room,
             message=message
@@ -275,7 +271,7 @@ class SocketServer(object):
                 need_return=need_return,
             )
             message['task_id'] = new_task.task_id
-        await self.send_message_to_client(
+        self.send_message_to_client(
             sid=sid,
             room_name=self.wx_room,
             message=message,
