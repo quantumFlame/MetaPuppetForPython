@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import inspect
+import threading
 from threading import Thread
-
+import warnings
 
 def get_attributes(obj, no_private_attr=True):
     all_attr = dir(obj)
@@ -68,15 +69,36 @@ def get_event_loop():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     if loop.is_running():
-        raise ValueError(
-            'loop is running in get_event_loop(). '
-            'By design, this function is only called by sync functions. '
-            'Please make sure loop is not running, '
-            'otherwise, call the async version instead or wrap the parent '
-            'funtion which called this one in a new thread to avoid '
-            'conflict with current loop '
+        warnings.warn(
+            'loop is running in get_event_loop() in thread {}. '
+            'Please make sure the new coro using this loop does not block the original '
+            'loop. (no long-time running sync version process)'
+            'Otherwise, wrap the parent funtion which called this one in a new thread '
+            'to avoid conflict with current loop '.format(
+                threading.currentThread().getName()
+            )
         )
     return loop
+
+def run_coroutine_in_new_thread(coro):
+    def run_coro(loop, coro):
+        asyncio.set_event_loop(loop)
+        r = loop.run_until_complete(coro)
+        return r
+
+    loop = asyncio.new_event_loop()
+    threading.Thread(
+        target=run_coro,
+        args=(loop, coro)
+    ).start()
+
+def run_coroutine_in_current_thread(coro):
+    loop = get_event_loop()
+    if loop.is_running():
+        print('running in current thread')
+        return asyncio.run_coroutine_threadsafe(coro, loop)
+    else:
+        return loop.run_until_complete(coro)
 
 def start_loop_in_thread(loop):
     asyncio.set_event_loop(loop)

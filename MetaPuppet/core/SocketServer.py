@@ -81,18 +81,6 @@ class SocketServer(object):
         loop = random.choice(self.async_loops)
         return asyncio.run_coroutine_threadsafe(coro, loop)
 
-    def run_coroutine_in_new_thread(self, coro):
-        def run_coro(loop, coro):
-            asyncio.set_event_loop(loop)
-            r = loop.run_until_complete(coro)
-            return r
-
-        loop = asyncio.new_event_loop()
-        threading.Thread(
-            target=run_coro,
-            args=(loop, coro)
-        ).start()
-
     def add_room(self, sender, room_name):
         self.rooms['all_rooms'].add(room_name)
         self.rooms[sender] = room_name
@@ -297,8 +285,7 @@ class SocketServer(object):
         :param exec_time:
         :return:
         """
-        loop = utils.get_event_loop()
-        r = loop.run_until_complete(
+        r = utils.run_coroutine_in_current_thread(
             self.async_send_wx_cmd(
                 ts_code=ts_code,
                 need_return=need_return,
@@ -328,8 +315,7 @@ class SocketServer(object):
         :param need_return:
         :return:
         """
-        loop = utils.get_event_loop()
-        r = loop.run_until_complete(
+        r = utils.run_coroutine_in_current_thread(
             self.async_exec_wx_function(
                 ts_code=ts_code,
                 need_return=need_return,
@@ -374,8 +360,7 @@ class SocketServer(object):
         # thread pool
         # https://stackoverflow.com/questions/6893968/
         # how-to-get-the-return-value-from-a-thread-in-python
-        loop = utils.get_event_loop()
-        r = loop.run_until_complete(
+        r = utils.run_coroutine_in_current_thread(
             self.async_exec_one_wx_function(
                 func_name=func_name,
                 func_paras=func_paras,

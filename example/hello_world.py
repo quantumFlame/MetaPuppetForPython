@@ -7,6 +7,7 @@ import MetaPuppet
 from MetaPuppet.core.SocketServer import SocketServer
 from MetaPuppet.core.RobotBase import RobotBase
 from MetaPuppet.core.time_classes import Time
+from MetaPuppet.core.utils import run_coroutine_in_new_thread
 
 class MyBot(RobotBase):
     def __init__(self, **kwargs):
@@ -145,10 +146,10 @@ if __name__ == '__main__':
     #  -------------edit following code for simple tasks-----------------------
     # async version
     # better to use async version because sync version might block io
-    a_server.run_coroutine_in_new_thread(
+    run_coroutine_in_new_thread(
         async_foo(a_server)
     )
-    a_server.run_coroutine_in_new_thread(
+    run_coroutine_in_new_thread(
         async_bar(a_server)
     )
 
