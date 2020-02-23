@@ -203,6 +203,15 @@ class SocketServer(object):
         pass
 
     async def send_message_to_client(self, message, sid=None, room_name=None):
+        """
+        actually this function can be defined w/o async
+        would it become too complex that async is necessary?
+
+        :param message:
+        :param sid:
+        :param room_name:
+        :return:
+        """
         if sid is None and room_name is None:
             raise ValueError('sid and room_name cannot be both None')
         message_to_send = {
