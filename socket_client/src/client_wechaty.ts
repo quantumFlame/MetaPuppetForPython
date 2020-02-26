@@ -83,11 +83,20 @@ async function process_msg_from_server(msg: any) {
         else if (msg['wx_msg_type'] == 'FILE') {
             say_content = FileBox.fromFile(msg['path'])
         }
+        else if (msg['wx_msg_type'] == 'URLLINK') {
+            say_content =  new bot.UrlLink({
+                description: msg['description'],
+                thumbnailUrl: msg['thumbnailUrl'],
+                title : msg['title'],
+                url : msg['url'],
+            })
+        }
         if (say_content) {
             let recover_msg_success = true
             // currently send back to message sender by defauly
             // maybe enable to send to anybody in the future
             // (combine send_text() with this function)
+            // TODO: should be changed. use python and cmd to call rather than ts
             try {
                 const ori_msg = bot.Message.load(msg['ori_msg']['id'])
                 await ori_msg.ready()
