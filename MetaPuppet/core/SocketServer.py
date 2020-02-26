@@ -152,8 +152,13 @@ class SocketServer(object):
         # await a successful emit of our reversed message
         # back to the client
         # print('receive', message)
-        if reply is not None and isinstance(reply, dict):
+        if isinstance(reply, dict):
             reply['ori_msg'] = message
+            self.send_wx_chat(reply)
+        elif isinstance(reply, list):
+            for r in reply:
+                if r is not None:
+                    r['ori_msg'] = message
             self.send_wx_chat(reply)
 
         if self.debug_mode:
@@ -227,17 +232,18 @@ class SocketServer(object):
             )
             asyncio.run_coroutine_threadsafe(emit_coro, self.server_loop)
 
+    # TODO: put js code for different types of msg here (use code form SNS_classes)
     def send_wx_chat(self, message, sid=None):
-        if not isinstance(message, dict):
-            raise TypeError(
-                'message should be a dict but {}'.format(type(message))
+        if isinstance(message, list):
+            for m in message:
+                self.send_wx_chat(m, sid=sid)
+        if isinstance(message, dict):
+            message['type'] = 'CHAT_INFO'
+            self.send_message_to_client(
+                sid=sid,
+                room_name=self.wx_room,
+                message=message
             )
-        message['type'] = 'CHAT_INFO'
-        self.send_message_to_client(
-            sid=sid,
-            room_name=self.wx_room,
-            message=message
-        )
 
     async def async_send_wx_cmd(self,
                           ts_code,
