@@ -12,7 +12,7 @@ import regex
 from .TaskManager import TASK_LIST
 from . import utils
 
-class SocketServer(object):
+class SocketServerCore(object):
     def __init__(self,
                  robot,
                  server_mode='sanic',
@@ -380,7 +380,7 @@ if __name__ == '__main__':
     from TestBot import TestBot
 
     a_bot = TestBot(name='test')
-    a_server = SocketServer(
+    a_server = SocketServerCore(
         robot=a_bot,
         num_async_threads=1,
         debug_mode=True

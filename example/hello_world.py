@@ -4,7 +4,7 @@ import time
 import asyncio
 
 import MetaPuppet
-from MetaPuppet.core.SocketServer import SocketServer
+from MetaPuppet.core.SocketServerCore import SocketServerCore
 from MetaPuppet.core.RobotBase import RobotBase
 from MetaPuppet.core.time_classes import Time
 from MetaPuppet.core.utils import run_coroutine_in_new_thread
@@ -130,7 +130,7 @@ def get_userself(server):
 if __name__ == '__main__':
     # init
     a_bot = MyBot(name='test')
-    a_server = SocketServer(
+    a_server = SocketServerCore(
         robot=a_bot,
         num_async_threads=1,
         debug_mode=True
