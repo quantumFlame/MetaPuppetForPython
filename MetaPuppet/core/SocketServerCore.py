@@ -422,7 +422,7 @@ class SocketServerCore(object):
 
     def send_wx_msg_text(self, text, username, chat_type):
         ts_code = '''
-            let say_content = '{}'
+            let say_content = `{}`
             const a_contact = bot.{}.load('{}')
             await a_contact.say(say_content)
         '''.format(text, self.all_chat_type[chat_type.lower()], username)
@@ -434,9 +434,9 @@ class SocketServerCore(object):
     def send_wx_msg_url(self, description, thumbnailUrl, title, url, username, chat_type):
         ts_code = '''
             let say_content = new bot.UrlLink({{
-                'description': '{description}',
+                'description': `{description}`,
                 'thumbnailUrl': '{thumbnailUrl}',
-                'title' : '{title}',
+                'title' : `{title}`,
                 'url' : '{url}',
             }})
             const a_contact = bot.{chat_type}.load('{username}')
@@ -486,7 +486,7 @@ class SocketServerCore(object):
 
     def accept_friend_invitation(self, invitation_json):
         ts_code = '''
-            const friend_request = bot.Friendship.fromJSON('{request_json}')
+            const friend_request = bot.Friendship.fromJSON(`{request_json}`)
             await friend_request.accept()
         '''.format(
             request_json=invitation_json
@@ -512,11 +512,13 @@ class SocketServerCore(object):
         )
 
     async def async_send_wx_msg_text(self, text, username, chat_type):
+        print('text', text)
         ts_code = '''
-            let say_content = '{}'
+            let say_content = `{}`
             const a_contact = bot.{}.load('{}')
             await a_contact.say(say_content)
         '''.format(text, self.all_chat_type[chat_type.lower()], username)
+        print('ts_code', ts_code)
         await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=False,
@@ -525,9 +527,9 @@ class SocketServerCore(object):
     async def async_send_wx_msg_url(self, description, thumbnailUrl, title, url, username, chat_type):
         ts_code = '''
             let say_content = new bot.UrlLink({{
-                'description': '{description}',
+                'description': `{description}`,
                 'thumbnailUrl': '{thumbnailUrl}',
-                'title' : '{title}',
+                'title' : `{title}`,
                 'url' : '{url}',
             }})
             const a_contact = bot.{chat_type}.load('{username}')
@@ -577,7 +579,7 @@ class SocketServerCore(object):
 
     async def async_accept_friend_invitation(self, invitation_json):
         ts_code = '''
-            const friend_request = await bot.Friendship.fromJSON('{request_json}')
+            const friend_request = await bot.Friendship.fromJSON(`{request_json}`)
             await friend_request.accept()
         '''.format(
             request_json=invitation_json,

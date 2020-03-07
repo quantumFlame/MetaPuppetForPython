@@ -25,52 +25,6 @@ class SweetSocketServer(SocketServerCore):
     #   sync version functions
     ######################################################
 
-    def send_file(self, file_path, file_type, username, chat_type):
-        # file_type is currently not used, maybe later
-        ts_code = '''
-            let say_content = FileBox.fromFile('{}')
-            const a_contact = bot.{}.load('{}')
-            await a_contact.say(say_content)
-        '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
-        self.exec_wx_function(
-            ts_code=ts_code,
-            need_return=False,
-        )
-
-    def send_text(self, text, username, chat_type):
-        ts_code = '''
-            let say_content = '{}'
-            const a_contact = bot.{}.load('{}')
-            await a_contact.say(say_content)
-        '''.format(text, self.all_chat_type[chat_type.lower()], username)
-        self.exec_wx_function(
-            ts_code=ts_code,
-            need_return=False,
-        )
-
-    def send_url(self, description, thumbnailUrl, title, url, username, chat_type):
-        ts_code = '''
-            let say_content = new bot.UrlLink({{
-                'description': '{description}',
-                'thumbnailUrl': '{thumbnailUrl}',
-                'title' : '{title}',
-                'url' : '{url}',
-            }})
-            const a_contact = bot.{chat_type}.load('{username}')
-            await a_contact.say(say_content)
-        '''.format(
-            description=description,
-            thumbnailUrl=thumbnailUrl,
-            title=title,
-            url=url,
-            chat_type=self.all_chat_type[chat_type.lower()],
-            username=username
-        )
-        self.exec_wx_function(
-            ts_code=ts_code,
-            need_return=False,
-        )
-
     def get_group_alias(self, user_id, room_id):
         ts_code = '''
             const a_room = bot.Room.load('{}')            
@@ -110,52 +64,6 @@ class SweetSocketServer(SocketServerCore):
     ######################################################
     #   async version functions
     ######################################################
-    async def async_send_file(self, file_path, file_type, username, chat_type):
-        # file_type is currently not used, maybe later
-        ts_code = '''
-            let say_content = FileBox.fromFile('{}')
-            const a_contact = bot.{}.load('{}')
-            await a_contact.say(say_content)
-        '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
-        await self.async_exec_wx_function(
-            ts_code=ts_code,
-            need_return=False,
-        )
-
-    async def async_send_text(self, text, username, chat_type):
-        ts_code = '''
-            let say_content = '{}'
-            const a_contact = bot.{}.load('{}')
-            await a_contact.say(say_content)
-        '''.format(text, self.all_chat_type[chat_type.lower()], username)
-        await self.async_exec_wx_function(
-            ts_code=ts_code,
-            need_return=False,
-        )
-
-    async def async_send_url(self, description, thumbnailUrl, title, url, username, chat_type):
-        ts_code = '''
-            let say_content = new bot.UrlLink({{
-                'description': '{description}',
-                'thumbnailUrl': '{thumbnailUrl}',
-                'title' : '{title}',
-                'url' : '{url}',
-            }})
-            const a_contact = bot.{chat_type}.load('{username}')
-            await a_contact.say(say_content)
-        '''.format(
-            description=description,
-            thumbnailUrl=thumbnailUrl,
-            title=title,
-            url=url,
-            chat_type=self.all_chat_type[chat_type.lower()],
-            username=username
-        )
-        await self.async_exec_wx_function(
-            ts_code=ts_code,
-            need_return=False,
-        )
-
     async def async_get_group_alias(self, user_id, room_id):
         ts_code = '''
             const a_room = bot.Room.load('{}')            
