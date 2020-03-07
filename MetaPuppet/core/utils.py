@@ -95,7 +95,6 @@ def run_coroutine_in_new_thread(coro):
 def run_coroutine_in_current_thread(coro):
     loop = get_event_loop()
     if loop.is_running():
-        print('running in current thread')
         return asyncio.run_coroutine_threadsafe(coro, loop)
     else:
         return loop.run_until_complete(coro)

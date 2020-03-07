@@ -2,5 +2,5 @@
   "watch": ["src"],
   "ext": "ts",
   "ignore": ["src/**/*.spec.ts"],
-  "exec": "ts-node ./src/client_wechaty.ts"
+  "exec": "ts-node ./src/wechaty_actions.ts"
 }
