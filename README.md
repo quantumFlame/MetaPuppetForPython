@@ -33,7 +33,7 @@ Install:
     # (before you run, you need a wechaty token and 
     # create the config.json file following 
     # the example config.example.json)
-    ts-node src/client_wechaty.ts
+    ts-node src/wechaty_actions.ts
 
 Use:
 

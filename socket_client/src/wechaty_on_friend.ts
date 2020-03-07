@@ -1,10 +1,10 @@
 import {Friendship } from "wechaty";
+import {send_msg_to_server} from './socket_actions'
 
 export async function on_friendship(request: any) {
     try {
-        const contact = request.contact()
-
         if (request.type() === Friendship.Type.Confirm) {
+            const contact = request.contact()
             console.log('New friend ' + contact.name() + ' relationship confirmed!')
             return
         }
@@ -12,7 +12,11 @@ export async function on_friendship(request: any) {
         if (request.type() === Friendship.Type.Receive) {
             const payload = await request.toJSON()
             console.log(payload)
-            await request.accept()
+            const msg = {
+                'payload': payload,
+                'type': 'FRIEND_INFO'
+            }
+            await send_msg_to_server(msg)
             return
         }
     } catch (e) {

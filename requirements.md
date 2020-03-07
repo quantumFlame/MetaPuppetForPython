@@ -20,4 +20,4 @@
 3. (production) run client to pass messages to server
 
         cd socket_client
-        ts-node src/client_wechaty.ts
+        ts-node src/wechaty_actions.ts
