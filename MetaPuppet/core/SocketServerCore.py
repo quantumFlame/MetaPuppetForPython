@@ -31,6 +31,20 @@ class SocketServerCore(object):
         }
         self.wx_room = 'wx'
         self.debug_mode = debug_mode
+        self.all_msg_type = {
+            'text': 'TEXT',
+            'file': 'FILE',
+            'url': 'URLLINK',
+            'urllink': 'URLLINK',
+        }
+        self.all_chat_type = {
+            'contact': 'Contact',
+            'room': 'Room',
+            'friend_chat': 'Contact',
+            'friend': 'Contact',
+            'group_chat': 'Room',
+            'group': 'Room',
+        }
 
     def create_app(self):
         self.server_loop, self.server_thread = utils.new_loop_thread()
@@ -115,6 +129,14 @@ class SocketServerCore(object):
                             message=message,
                         )
                     )
+                elif msg_type == 'FRIEND_INFO':
+                    print('here 50')
+                    self.run_coroutine_in_random_thread(
+                        self.process_wx_friend_message(
+                            sid=sid,
+                            message=message,
+                        )
+                    )
                 elif msg_type == 'CMD_INFO':
                     # await self.process_wx_cmd_message(
                     #     sid=sid,
@@ -147,21 +169,28 @@ class SocketServerCore(object):
             pass
 
     async def process_wx_chat_message(self, sid, message, verbose=False):
-        # print('message', 'process_wx_chat_message', message)
+        if not 'payload' in message:
+            return
+        username = None
+        chat_type = None
+        roomId = message['payload'].get('roomId')
+        fromId = message['payload'].get('fromId')
+        if isinstance(roomId, str) and len(roomId) > 0:
+            username = roomId
+            chat_type = 'group_chat'
+        elif isinstance(fromId, str) and len(fromId) > 0:
+            username = fromId
+            chat_type = 'friend_chat'
+        if username is None:
+            return
         reply = await self.robot.process_message(message, verbose=verbose)
-        # await a successful emit of our reversed message
-        # back to the client
-        # print('receive', message)
-        if isinstance(reply, dict):
-            reply['ori_msg'] = message
-            self.send_wx_chat(reply)
-        elif isinstance(reply, list):
-            for r in reply:
-                if r is not None:
-                    r['ori_msg'] = message
-            self.send_wx_chat(reply)
+        await self.async_send_wx_msg(
+            msg=reply,
+            username=username,
+            chat_type=chat_type
+        )
 
-        if self.debug_mode:
+        if self.debug_mode and 'text' in message['payload']:
             """
             we can send message as below to debug transpile
             
@@ -173,13 +202,26 @@ class SocketServerCore(object):
             test()
             }
             """
-            if 'payload' in message:
-                text = message['payload']['text']
-                text = text.split('\n')
-                if len(text) > 1 and text[0].strip().lower() == '$debug$':
-                    ts_code = '\n'.join(text[1:])
-                    result = await self.async_send_wx_cmd(ts_code, need_return=True)
-                    print('cmd debug result: ', result)
+            text = message['payload']['text']
+            text = text.split('\n')
+            if len(text) > 1 and text[0].strip().lower() == '$debug$':
+                ts_code = '\n'.join(text[1:])
+                result = await self.async_send_wx_cmd(ts_code, need_return=True)
+                print('cmd debug result: ', result)
+
+    async def process_wx_friend_message(self, sid, message, verbose=False):
+        if not 'payload' in message:
+            return
+        print('message', message)
+        await self.async_accept_friend_invitation(message['payload'])
+        print('here 51')
+        reply = await self.robot.process_friend_invitation(message, verbose=verbose)
+        print('reply', reply)
+        await self.async_send_wx_msg(
+            msg=reply,
+            username=message['payload']['contactId'],
+            chat_type='friend_chat'
+        )
 
     async def process_wx_cmd_message(self, sid, message, verbose=False):
         if not 'task_id' in message:
@@ -232,25 +274,12 @@ class SocketServerCore(object):
             )
             asyncio.run_coroutine_threadsafe(emit_coro, self.server_loop)
 
-    # TODO: put js code for different types of msg here (use code form SNS_classes)
-    def send_wx_chat(self, message, sid=None):
-        if isinstance(message, list):
-            for m in message:
-                self.send_wx_chat(m, sid=sid)
-        if isinstance(message, dict):
-            message['type'] = 'CHAT_INFO'
-            self.send_message_to_client(
-                sid=sid,
-                room_name=self.wx_room,
-                message=message
-            )
-
     async def async_send_wx_cmd(self,
-                          ts_code,
-                          sid=None,
-                          need_return=False,
-                          life_time=3600,
-                          exec_time=300):
+                                ts_code,
+                                sid=None,
+                                need_return=False,
+                                life_time=3600,
+                                exec_time=300):
         message = {
             'type': 'CMD_INFO',
             'ts_code': ts_code,
@@ -374,6 +403,190 @@ class SocketServerCore(object):
             )
         )
         return r
+
+    ######################################################
+    #   sync version functions
+    ######################################################
+
+    def send_wx_msg_file(self, file_path, file_type, username, chat_type):
+        # file_type is currently not used, maybe later
+        ts_code = '''
+            let say_content = FileBox.fromFile('{}')
+            const a_contact = bot.{}.load('{}')
+            await a_contact.say(say_content)
+        '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
+        self.exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
+    def send_wx_msg_text(self, text, username, chat_type):
+        ts_code = '''
+            let say_content = '{}'
+            const a_contact = bot.{}.load('{}')
+            await a_contact.say(say_content)
+        '''.format(text, self.all_chat_type[chat_type.lower()], username)
+        self.exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
+    def send_wx_msg_url(self, description, thumbnailUrl, title, url, username, chat_type):
+        ts_code = '''
+            let say_content = new bot.UrlLink({{
+                'description': '{description}',
+                'thumbnailUrl': '{thumbnailUrl}',
+                'title' : '{title}',
+                'url' : '{url}',
+            }})
+            const a_contact = bot.{chat_type}.load('{username}')
+            await a_contact.say(say_content)
+        '''.format(
+            description=description,
+            thumbnailUrl=thumbnailUrl,
+            title=title,
+            url=url,
+            chat_type=self.all_chat_type[chat_type.lower()],
+            username=username
+        )
+        self.exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
+    def send_wx_msg(self, msg, username, chat_type):
+        if isinstance(msg, str):
+            self.send_wx_msg_text(text=msg, username=username, chat_type=chat_type)
+        if isinstance(msg, dict):
+            if self.all_msg_type[msg['wx_msg_type'].lower()] == 'TEXT':
+                self.send_wx_msg_text(
+                    text=msg['text'],
+                    username=username,
+                    chat_type=chat_type,
+                )
+            if self.all_msg_type[msg['wx_msg_type'].lower()] == 'FILE':
+                self.send_wx_msg_file(
+                    file_path=msg['path'],
+                    file_type=None,
+                    username=username,
+                    chat_type=chat_type,
+                )
+            if self.all_msg_type[msg['wx_msg_type'].lower()] == 'URLLINK':
+                self.send_wx_msg_url(
+                    description=msg['description'],
+                    thumbnailUrl=msg['thumbnailUrl'],
+                    title=msg['title'],
+                    url=msg['url'],
+                    username=username,
+                    chat_type=chat_type,
+                )
+        if isinstance(msg, list):
+            for m in msg:
+                self.send_wx_msg(msg=m, username=username, chat_type=chat_type)
+
+    def accept_friend_invitation(self, invitation_json):
+        ts_code = '''
+            const friend_request = bot.Friendship.fromJSON('{request_json}')
+            await friend_request.accept()
+        '''.format(
+            request_json=invitation_json
+        )
+        self.exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
+    ######################################################
+    #   async version functions
+    ######################################################
+    async def async_send_wx_msg_file(self, file_path, file_type, username, chat_type):
+        # file_type is currently not used, maybe later
+        ts_code = '''
+            let say_content = FileBox.fromFile('{}')
+            const a_contact = bot.{}.load('{}')
+            await a_contact.say(say_content)
+        '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
+        await self.async_exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
+    async def async_send_wx_msg_text(self, text, username, chat_type):
+        ts_code = '''
+            let say_content = '{}'
+            const a_contact = bot.{}.load('{}')
+            await a_contact.say(say_content)
+        '''.format(text, self.all_chat_type[chat_type.lower()], username)
+        await self.async_exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
+    async def async_send_wx_msg_url(self, description, thumbnailUrl, title, url, username, chat_type):
+        ts_code = '''
+            let say_content = new bot.UrlLink({{
+                'description': '{description}',
+                'thumbnailUrl': '{thumbnailUrl}',
+                'title' : '{title}',
+                'url' : '{url}',
+            }})
+            const a_contact = bot.{chat_type}.load('{username}')
+            await a_contact.say(say_content)
+        '''.format(
+            description=description,
+            thumbnailUrl=thumbnailUrl,
+            title=title,
+            url=url,
+            chat_type=self.all_chat_type[chat_type.lower()],
+            username=username
+        )
+        await self.async_exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
+    async def async_send_wx_msg(self, msg, username, chat_type):
+        if isinstance(msg, str):
+            await self.async_send_wx_msg_text(text=msg, username=username, chat_type=chat_type)
+        if isinstance(msg, dict):
+            if self.all_msg_type[msg['wx_msg_type'].lower()] == 'TEXT':
+                await self.async_send_wx_msg_text(
+                    text=msg['text'],
+                    username=username,
+                    chat_type=chat_type,
+                )
+            if self.all_msg_type[msg['wx_msg_type'].lower()] == 'FILE':
+                await self.async_send_wx_msg_file(
+                    file_path=msg['path'],
+                    file_type=None,
+                    username=username,
+                    chat_type=chat_type,
+                )
+            if self.all_msg_type[msg['wx_msg_type'].lower()] == 'URLLINK':
+                await self.async_send_wx_msg_url(
+                    description=msg['description'],
+                    thumbnailUrl=msg['thumbnailUrl'],
+                    title=msg['title'],
+                    url=msg['url'],
+                    username=username,
+                    chat_type=chat_type,
+                )
+        if isinstance(msg, list):
+            for m in msg:
+                await self.async_send_wx_msg(msg=m, username=username, chat_type=chat_type)
+
+    async def async_accept_friend_invitation(self, invitation_json):
+        ts_code = '''
+            const friend_request = await bot.Friendship.fromJSON('{request_json}')
+            await friend_request.accept()
+        '''.format(
+            request_json=invitation_json,
+        )
+        await self.async_exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
 
 # We kick off our server
 if __name__ == '__main__':

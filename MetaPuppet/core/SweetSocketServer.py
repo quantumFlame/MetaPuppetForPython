@@ -20,14 +20,6 @@ class SweetSocketServer(SocketServerCore):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.all_chat_type = {
-            'contact': 'Contact',
-            'room': 'Room',
-            'friend_chat': 'Contact',
-            'friend': 'Contact',
-            'group_chat': 'Room',
-            'group': 'Room',
-        }
 
     ######################################################
     #   sync version functions
@@ -40,7 +32,7 @@ class SweetSocketServer(SocketServerCore):
             const a_contact = bot.{}.load('{}')
             await a_contact.say(say_content)
         '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
-        self.server.exec_wx_function(
+        self.exec_wx_function(
             ts_code=ts_code,
             need_return=False,
         )
@@ -51,7 +43,7 @@ class SweetSocketServer(SocketServerCore):
             const a_contact = bot.{}.load('{}')
             await a_contact.say(say_content)
         '''.format(text, self.all_chat_type[chat_type.lower()], username)
-        self.server.exec_wx_function(
+        self.exec_wx_function(
             ts_code=ts_code,
             need_return=False,
         )
@@ -74,7 +66,7 @@ class SweetSocketServer(SocketServerCore):
             chat_type=self.all_chat_type[chat_type.lower()],
             username=username
         )
-        self.server.exec_wx_function(
+        self.exec_wx_function(
             ts_code=ts_code,
             need_return=False,
         )
@@ -87,7 +79,7 @@ class SweetSocketServer(SocketServerCore):
             await a_contact.ready()
             return await a_room.alias(a_contact)
         '''.format(room_id, user_id)
-        r = self.server.exec_wx_function(
+        r = self.exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )
@@ -99,7 +91,7 @@ class SweetSocketServer(SocketServerCore):
             await a_contact.ready()
             return await a_contact.alias('{}')
         '''.format(username, remarkname)
-        r = self.server.exec_wx_function(
+        r = self.exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )
@@ -109,7 +101,7 @@ class SweetSocketServer(SocketServerCore):
         ts_code = '''
             return await bot.Message.Type
         '''
-        r = self.server.exec_wx_function(
+        r = self.exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )
@@ -125,7 +117,7 @@ class SweetSocketServer(SocketServerCore):
             const a_contact = bot.{}.load('{}')
             await a_contact.say(say_content)
         '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
-        await self.server.async_exec_wx_function(
+        await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=False,
         )
@@ -136,7 +128,7 @@ class SweetSocketServer(SocketServerCore):
             const a_contact = bot.{}.load('{}')
             await a_contact.say(say_content)
         '''.format(text, self.all_chat_type[chat_type.lower()], username)
-        await self.server.async_exec_wx_function(
+        await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=False,
         )
@@ -159,7 +151,7 @@ class SweetSocketServer(SocketServerCore):
             chat_type=self.all_chat_type[chat_type.lower()],
             username=username
         )
-        await self.server.async_exec_wx_function(
+        await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=False,
         )
@@ -172,7 +164,7 @@ class SweetSocketServer(SocketServerCore):
             await a_contact.ready()
             return await a_room.alias(a_contact)
         '''.format(room_id, user_id)
-        r = await self.server.async_exec_wx_function(
+        r = await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )
@@ -184,7 +176,7 @@ class SweetSocketServer(SocketServerCore):
             await a_contact.ready()
             return await a_contact.alias('{}')
         '''.format(username, remarkname)
-        r = await self.server.async_exec_wx_function(
+        r = await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )
@@ -194,7 +186,7 @@ class SweetSocketServer(SocketServerCore):
         ts_code = '''
             return await bot.Message.Type
         '''
-        r = await self.server.async_exec_wx_function(
+        r = await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )

@@ -43,6 +43,14 @@ class MyBot(RobotBase):
                     }
         return return_msg
 
+    async def _process_friend_invitation(self, message, verbose=False):
+        return_msg = {
+            'wx_msg_type': 'TEXT',
+            'path': 'Hello human!',
+        }
+        return return_msg
+
+
 # async version
 # better to use async version because sync version would block io
 async def async_foo(server):

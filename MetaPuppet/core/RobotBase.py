@@ -18,5 +18,13 @@ class RobotBase(metaclass=abc.ABCMeta):
     async def _process_message(self, message, verbose=False):
         raise NotImplementedError
 
+    async def process_friend_invitation(self, message, verbose=False):
+        return_msg = await self._process_friend_invitation(message, verbose=verbose)
+        return return_msg
+
+    @abc.abstractmethod
+    async def _process_friend_invitation(self, message, verbose=False):
+        raise NotImplementedError
+
     def get_name(self):
         return self.name

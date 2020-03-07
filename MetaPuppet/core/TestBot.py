@@ -5,28 +5,6 @@ import time
 from .RobotBase import RobotBase
 from . import utils
 
-'''
-function needed;
-
-media-FILE-bot.js
-
-send_file(
-send_msg
-find_all_group_info(
-get_chatrooms()
-send_image(file_path, username)
-send_video(file_path, username)
-send_file(file_path, username)
-search_mps(name=nickname)
-search_friends(remarkName=remarkname)
-search_chatrooms(name=group.name)
-set_alias(username, remarkname)
-
-
-'''
-
-
-
 class TestBot(RobotBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -61,6 +39,12 @@ class TestBot(RobotBase):
                     }
         return return_msg
 
+    async def _process_friend_invitation(self, message, verbose=False):
+        return_msg = {
+            'wx_msg_type': 'TEXT',
+            'path': 'Hello human!',
+        }
+        return return_msg
 
 if __name__ == '__main__':
     a_bot = TestBot(name='here')
