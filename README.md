@@ -493,7 +493,7 @@ a_webgui.run()
 client端包含少量的ts代码，用于编译来自server的代码，和响应微信的请求(新消息，好友请求等)，一般不需要更改。   
 
 基于此原理，可以使用Python调用`Wechaty`的任意原生代码，所以理论上可以兼容`Wechaty`的所有协议和接口函数。
-已实现`async_exec_wx_function()`用于运行一个代码片段，和`async_exec_one_wx_function()`用于运行单个函数。
+已实现`async_exec_wx_function()`用于运行代码块，和`async_exec_one_wx_function()`用于运行单个函数。
 
 ## 安装
 ```bash
