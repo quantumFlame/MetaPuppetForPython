@@ -1,12 +1,17 @@
 // with ES6 import
 import * as ts from 'typescript'
-import { FileBox }  from 'file-box'
-
 import {socket} from "./communication_agents";
-import {wxbot} from "./communication_agents";
 import {delay} from './utils'
 
-const bot = wxbot
+// somehow the code compiled by transpile only support
+// const xx = require('xx')
+// rather than import xx from xx
+// i don't know why
+// if you are familiar with ts, you could help improve it
+const bot = require('./communication_agents').bot
+const FileBox = require('file-box').FileBox
+
+console.log('socket_actions loaded')
 
 export async function send_msg_to_server(msg: any) {
     let msg_to_send: any = {
@@ -30,7 +35,7 @@ export async function send_msg_to_server(msg: any) {
 }
 
 async function process_msg_from_server(msg: any) {
-    console.log('process_msg_from_server ' + typeof msg)
+    console.log('process_msg_from_server')
     if ('type' in msg && msg['type'] === 'CMD_INFO') {
         //     https://stackoverflow.com/questions/45153848/evaluate-typescript-from-string
         let ts_code = ts.transpile(msg['ts_code'])

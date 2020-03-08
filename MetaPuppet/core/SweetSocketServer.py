@@ -61,6 +61,22 @@ class SweetSocketServer(SocketServerCore):
         )
         return r
 
+    def change_self_signature(self, signature):
+        ts_code = '''
+            const userself = await bot.userSelf()
+            try {{
+                await userself.signature(`{signature}`)
+            }} catch (e) {{
+                console.error('change signature failed', e)
+            }}
+        '''.format(
+            signature=signature,
+        )
+        self.exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
     ######################################################
     #   async version functions
     ######################################################
@@ -100,6 +116,22 @@ class SweetSocketServer(SocketServerCore):
         )
         return r
 
+    async def async_change_self_signature(self, signature):
+        ts_code = '''
+            const userself = await bot.userSelf()
+            try {{
+                await userself.signature(`{signature}`)
+            }} catch (e) {{
+                console.error('change signature failed', e)
+            }}
+        '''.format(
+            signature=signature,
+        )
+        await self.async_exec_wx_function(
+            ts_code=ts_code,
+            need_return=False,
+        )
+
 # We kick off our server
 if __name__ == '__main__':
     from TestBot import TestBot
@@ -112,6 +144,4 @@ if __name__ == '__main__':
     )
     a_server.run()
 
-    # # TODO: solve connection timeout problem
-    # # https://stackoverflow.com/questions/47875007/flask-socket-io-frequent-time-outs
 

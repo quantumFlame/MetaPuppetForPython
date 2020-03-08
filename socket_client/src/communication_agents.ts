@@ -10,7 +10,7 @@ export const socket = io.connect(
 const token = config.token.padplus
 const puppet = 'wechaty-puppet-padplus'
 const name  = 'bot-padplus'
-export const wxbot = new Wechaty({
+export const bot = new Wechaty({
   name,
   puppet,
   puppetOptions: { token }, // generate xxxx.memory-card.json and save login data for the next login

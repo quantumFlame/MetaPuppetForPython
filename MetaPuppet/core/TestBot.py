@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
-import asyncio
-import time
-
 from .RobotBase import RobotBase
-from . import utils
 
 class TestBot(RobotBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-
     async def _process_message(self, message, verbose=False):
+        #  -------------edit following code for simple tasks-----------------------
         return_msg = None
         if (self.server.debug_mode and 'payload' in message):
             text = message['payload']['text']
@@ -42,7 +38,7 @@ class TestBot(RobotBase):
     async def _process_friend_invitation(self, message, verbose=False):
         return_msg = {
             'wx_msg_type': 'TEXT',
-            'path': 'Hello human!',
+            'path': 'Hello Human!',
         }
         return return_msg
 

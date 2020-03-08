@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import threading
 import time
-import asyncio
 
-import MetaPuppet
-from MetaPuppet.core.SocketServerCore import SocketServerCore
+from MetaPuppet.core.SweetSocketServer import SweetSocketServer
 from MetaPuppet.core.RobotBase import RobotBase
 from MetaPuppet.core.time_classes import Time
 from MetaPuppet.core.utils import run_coroutine_in_new_thread
@@ -16,40 +14,16 @@ class MyBot(RobotBase):
     async def _process_message(self, message, verbose=False):
         #  -------------edit following code for simple tasks-----------------------
         return_msg = None
-        if (self.server.debug_mode and 'payload' in message):
-            text = message['payload']['text']
-            text = text.split('\n')
-            if len(text) > 1 and text[0].strip().lower() == '$debug text$':
-                new_text = ('\n'.join(text[1:]))[::-1]
-                if len(new_text) > 0:
-                    return_msg = {
-                        'wx_msg_type': 'TEXT',
-                        'text': new_text
-                    }
-            if len(text) > 1 and text[0].strip().lower() == '$debug file$':
-                test_files = [
-                    '../example/test0.png',
-                    '../example/test1.gif',
-                    '../example/test2.gif',
-                    '../example/test3.gif',
-                    '../example/test4.gif',
-                    '../example/test5.gif',
-                ]
-                new_text = ('\n'.join(text[1:]))
-                if len(new_text) > 0:
-                    return_msg = {
-                        'wx_msg_type': 'FILE',
-                        'path': test_files[len(new_text)%len(test_files)],
-                    }
+        if 'payload' in message and 'text' in message['payload']:
+            return_msg = message['payload']['text'][::-1]
         return return_msg
 
     async def _process_friend_invitation(self, message, verbose=False):
         return_msg = {
             'wx_msg_type': 'TEXT',
-            'path': 'Hello human!',
+            'path': 'Hello Human!',
         }
         return return_msg
-
 
 # async version
 # better to use async version because sync version would block io
@@ -102,7 +76,6 @@ def foo(server):
             const members = await a_room.findAll()
             return members
         '''.format(rooms[0]['id'])
-        # 12680986140@chatroom
         members = server.exec_wx_function(
             ts_code=ts_code,
             need_return=True,
@@ -138,7 +111,7 @@ def get_userself(server):
 if __name__ == '__main__':
     # init
     a_bot = MyBot(name='test')
-    a_server = SocketServerCore(
+    a_server = SweetSocketServer(
         robot=a_bot,
         num_async_threads=1,
         debug_mode=True

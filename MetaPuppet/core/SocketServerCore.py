@@ -512,13 +512,11 @@ class SocketServerCore(object):
         )
 
     async def async_send_wx_msg_text(self, text, username, chat_type):
-        print('text', text)
         ts_code = '''
             let say_content = `{}`
             const a_contact = bot.{}.load('{}')
             await a_contact.say(say_content)
         '''.format(text, self.all_chat_type[chat_type.lower()], username)
-        print('ts_code', ts_code)
         await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=False,
@@ -601,7 +599,4 @@ if __name__ == '__main__':
         debug_mode=True
     )
     a_server.run()
-
-    # # TODO: solve connection timeout problem
-    # # https://stackoverflow.com/questions/47875007/flask-socket-io-frequent-time-outs
 
