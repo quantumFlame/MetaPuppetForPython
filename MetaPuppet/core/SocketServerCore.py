@@ -212,6 +212,7 @@ class SocketServerCore(object):
         if not 'payload' in message:
             return
         await self.async_accept_friend_invitation(message['payload'])
+        message['payload'] = json.loads(message['payload'])
         reply = await self.robot.process_friend_invitation(message, verbose=verbose)
         asyncio.sleep(30)
         await self.async_send_wx_msg(
