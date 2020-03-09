@@ -11,7 +11,6 @@ export async function on_friendship(request: any) {
 
         if (request.type() === Friendship.Type.Receive) {
             const payload = await request.toJSON()
-            console.log(payload)
             const msg = {
                 'payload': payload,
                 'type': 'FRIEND_INFO'

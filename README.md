@@ -15,7 +15,7 @@
 
 #### 初级：Hello Human!
 
-> 目标：改变微信签名
+> 目标：更改微信签名
 
 > 要点：你可以调用类似`a_server.change_self_signature()`的函数来主动调用Wechaty的各种接口，从而主动查找联系人，发信息等。
 你可以在`SocketServerCore`和`SweetSocketServer`中找到更多类似的函数。
@@ -112,8 +112,8 @@ if __name__ == '__main__':
 
 > 要点：MetaPuppetForPython实际上是用python将ts的代码片段转发给node并编译运行(详见原理部分)，所以若已有的语法糖不能满足需求，你需要定义自己的函数。
 由于ts的代码和python其实比较相似，并且往往只需要写很少的ts的代码，主要业务代码还是python，所以自定义函数的难度应该不大。
-你可以继承`SweetSocketServer`，然后在自定义函数中调用`exec_wx_function()`执行文本格式的ts代码。
-如果你需要使用第三番的ts库，可以在`socket_client/src`的相关代码中声明。
+你可以继承`SweetSocketServer`，然后在自定义函数中调用`exec_wx_function()`或`exec_one_wx_function()`执行文本格式的ts代码。
+如果你需要使用第三方的ts库，可以在`socket_client/src`的相关代码中声明。
 
 同步代码的语法糖：
 ```python
@@ -160,12 +160,12 @@ class ExtendedSocketServer(SweetSocketServer):
 #### 中级：同步/异步
 > 目标：通过使用异步编程加速代码
 
-> 要点：同步和异步的区别是在等待响应时前者是真的等待，后者是会缓存当前程序，执行其他异步程序，收到响应时从恢复当前程序继续执行。
+> 要点：同步和异步的区别是在等待响应时前者是真的等待，后者是会缓存当前程序，执行其他异步程序，收到响应时恢复当前程序继续执行。
 需要等待的情况有：网络通信等待回复，等待其他某个进程结束，人为使用等待/睡眠等函数。
 所以，对于大多数看到这篇帖子的人而言，异步代码加速的主要是网络通信的部分。
 如果同步代码本身很慢，将其改为异步并不能减少其执行时间。
-基于MetaPuppetForPython的原理，对于频繁调用Wechaty的函数，建议使用异步变成，如默认的`_process_message()`就是异步函数。
-在`_process_message()`中，若需要经常调用Wechaty函数，建议使用异步版本的语法糖。
+基于MetaPuppetForPython的原理，对于频繁调用Wechaty的函数，建议使用异步编程，如默认的`_process_message()`就是异步函数。
+在`_process_message()`中，若需要经常调用Wechaty函数，建议使用异步版本的语法糖；若仅是偶尔调用，使用同步版本亦可。
 当然，为避免所有函数都需要异步定义，建议在设计层面将Wechaty的相关调用放在比较上层的位置，甚至与核心的同步代码相互独立。
 对于大部分业务代码，只是偶尔调用Wechaty函数，可以直接使用同步风格的语法糖，并不影响效率。
 
@@ -493,7 +493,7 @@ a_webgui.run()
 client端包含少量的ts代码，用于编译来自server的代码，和响应微信的请求(新消息，好友请求等)，一般不需要更改。   
 
 基于此原理，可以使用Python调用`Wechaty`的任意原生代码，所以理论上可以兼容`Wechaty`的所有协议和接口函数。
-已实现`async_exec_wx_function()`用于运行代码块，和`async_exec_one_wx_function()`用于运行单个函数。
+已实现`[async_]exec_wx_function()`用于运行代码块，和`[async_]exec_one_wx_function()`用于运行单个函数。
 
 ## 安装
 ```bash
