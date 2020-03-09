@@ -130,7 +130,6 @@ class SocketServerCore(object):
                         )
                     )
                 elif msg_type == 'FRIEND_INFO':
-                    print('here 50')
                     self.run_coroutine_in_random_thread(
                         self.process_wx_friend_message(
                             sid=sid,
@@ -214,7 +213,7 @@ class SocketServerCore(object):
             return
         await self.async_accept_friend_invitation(message['payload'])
         reply = await self.robot.process_friend_invitation(message, verbose=verbose)
-        asyncio.sleep(10)
+        asyncio.sleep(30)
         await self.async_send_wx_msg(
             msg=reply,
             username=message['payload']['contactId'],
