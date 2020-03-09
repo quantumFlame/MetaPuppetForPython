@@ -214,7 +214,7 @@ class SocketServerCore(object):
         await self.async_accept_friend_invitation(message['payload'])
         message['payload'] = json.loads(message['payload'])
         reply = await self.robot.process_friend_invitation(message, verbose=verbose)
-        asyncio.sleep(30)
+        await asyncio.sleep(30)
         await self.async_send_wx_msg(
             msg=reply,
             username=message['payload']['contactId'],
