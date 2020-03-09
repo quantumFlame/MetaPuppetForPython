@@ -212,11 +212,9 @@ class SocketServerCore(object):
     async def process_wx_friend_message(self, sid, message, verbose=False):
         if not 'payload' in message:
             return
-        print('message', message)
         await self.async_accept_friend_invitation(message['payload'])
-        print('here 51')
         reply = await self.robot.process_friend_invitation(message, verbose=verbose)
-        print('reply', reply)
+        asyncio.sleep(10)
         await self.async_send_wx_msg(
             msg=reply,
             username=message['payload']['contactId'],
