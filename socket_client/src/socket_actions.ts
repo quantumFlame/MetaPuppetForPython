@@ -11,8 +11,6 @@ import {delay} from './utils'
 const bot = require('./communication_agents').bot
 const FileBox = require('file-box').FileBox
 
-console.log('socket_actions loaded')
-
 export async function send_msg_to_server(msg: any) {
     let msg_to_send: any = {
         'sender': 'wx_padplus',
