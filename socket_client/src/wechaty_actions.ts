@@ -7,13 +7,13 @@ import {on_room_invite} from "./wechaty_on_room";
 const bot = require('./communication_agents').bot
 
 bot
-.on('scan', (qrcode: any, status: any) => {
+.on('scan', (qrcode: any) => {
     QrcodeTerminal.generate(qrcode, {
         small: true
     })
 })
 
-.on('login', async function (this:any, user:any) {
+.on('login', async (user:any) => {
     console.log('Bot', `${user.name()} logined`)
 })
 .on('logout', (user: any) => console.log('Bot', `${user.name()} logouted`))
