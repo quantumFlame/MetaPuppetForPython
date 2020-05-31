@@ -15,7 +15,7 @@
     "qrcode-terminal": "^0.12.0",
     "socket.io-client": "^2.3.0",
     "typescript": "^3.7.5",
-    "wechaty": "^0.39.26",
+    "wechaty": "^0.39.40",
     "wechaty-puppet-padplus": "^0.6.2"
   }
 }
