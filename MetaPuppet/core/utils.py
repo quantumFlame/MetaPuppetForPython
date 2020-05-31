@@ -4,6 +4,9 @@ import inspect
 import threading
 from threading import Thread
 import warnings
+import regex
+
+PATTERN_PICTURE = regex.compile('^.*\.(jpg|png|gif)$', flags=regex.IGNORECASE)
 
 def get_attributes(obj, no_private_attr=True):
     all_attr = dir(obj)
@@ -112,6 +115,11 @@ def new_loop_thread():
     t.start()
     return loop, t
 
+def is_picture_file(file_path):
+    if PATTERN_PICTURE(file_path):
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
     import task_classes

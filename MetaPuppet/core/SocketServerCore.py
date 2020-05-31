@@ -408,11 +408,28 @@ class SocketServerCore(object):
 
     def send_wx_msg_file(self, file_path, file_type, username, chat_type):
         # file_type is currently not used, maybe later
-        ts_code = '''
-            let say_content = FileBox.fromFile('{}')
-            const a_contact = bot.{}.load('{}')
-            await a_contact.say(say_content)
-        '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
+        if utils.is_picture_file(file_path):
+            ts_code = '''
+                let say_content = FileBox.fromFile(`{file_path}`)
+                const base64 = await say_content.toBase64()
+                say_content = FileBox.fromBase64(base64, `{file_path}`)
+                const a_contact = bot.{chat_type}.load('{username}')
+                await a_contact.say(say_content)
+            '''.format(
+                file_path=file_path,
+                chat_type=self.all_chat_type[chat_type.lower()],
+                username=username
+            )
+        else:
+            ts_code = '''
+                let say_content = FileBox.fromFile(`{file_path}`)
+                const a_contact = bot.{chat_type}.load('{username}')
+                await a_contact.say(say_content)
+            '''.format(
+                file_path=file_path,
+                chat_type=self.all_chat_type[chat_type.lower()],
+                username=username
+            )
         self.exec_wx_function(
             ts_code=ts_code,
             need_return=False,
@@ -499,11 +516,28 @@ class SocketServerCore(object):
     ######################################################
     async def async_send_wx_msg_file(self, file_path, file_type, username, chat_type):
         # file_type is currently not used, maybe later
-        ts_code = '''
-            let say_content = FileBox.fromFile('{}')
-            const a_contact = bot.{}.load('{}')
-            await a_contact.say(say_content)
-        '''.format(file_path, self.all_chat_type[chat_type.lower()], username)
+        if utils.is_picture_file(file_path):
+            ts_code = '''
+                let say_content = FileBox.fromFile(`{file_path}`)
+                const base64 = await say_content.toBase64()
+                say_content = FileBox.fromBase64(base64, `{file_path}`)
+                const a_contact = bot.{chat_type}.load('{username}')
+                await a_contact.say(say_content)
+            '''.format(
+                file_path=file_path,
+                chat_type=self.all_chat_type[chat_type.lower()],
+                username=username
+            )
+        else:
+            ts_code = '''
+                let say_content = FileBox.fromFile(`{file_path}`)
+                const a_contact = bot.{chat_type}.load('{username}')
+                await a_contact.say(say_content)
+            '''.format(
+                file_path=file_path,
+                chat_type=self.all_chat_type[chat_type.lower()],
+                username=username
+            )
         await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=False,
