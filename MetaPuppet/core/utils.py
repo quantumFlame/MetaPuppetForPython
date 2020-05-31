@@ -116,7 +116,7 @@ def new_loop_thread():
     return loop, t
 
 def is_picture_file(file_path):
-    if PATTERN_PICTURE(file_path):
+    if PATTERN_PICTURE.match(file_path):
         return True
     else:
         return False
