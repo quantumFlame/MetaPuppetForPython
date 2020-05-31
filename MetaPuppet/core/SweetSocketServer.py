@@ -61,7 +61,7 @@ class SweetSocketServer(SocketServerCore):
         )
         return r
 
-    async def get_room_members(self, room_id):
+    def get_room_members(self, room_id):
         ts_code = '''
             const a_room = bot.Room.load('{room_id}')            
             await a_room.ready()
@@ -69,10 +69,11 @@ class SweetSocketServer(SocketServerCore):
         '''.format(
             room_id=room_id,
         )
-        await self.exec_wx_function(
+        r = self.exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )
+        return r
 
     def change_self_signature(self, signature):
         ts_code = '''
@@ -137,10 +138,11 @@ class SweetSocketServer(SocketServerCore):
         '''.format(
             room_id=room_id,
         )
-        await self.async_exec_wx_function(
+        r = await self.async_exec_wx_function(
             ts_code=ts_code,
             need_return=True,
         )
+        return r
 
     async def async_change_self_signature(self, signature):
         ts_code = '''
