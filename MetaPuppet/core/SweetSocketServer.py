@@ -65,7 +65,7 @@ class SweetSocketServer(SocketServerCore):
         ts_code = '''
             const a_room = bot.Room.load('{room_id}')            
             await a_room.ready()
-            return await room.memberAll()
+            return await a_room.memberAll()
         '''.format(
             room_id=room_id,
         )
@@ -134,7 +134,7 @@ class SweetSocketServer(SocketServerCore):
         ts_code = '''
             const a_room = bot.Room.load('{room_id}')            
             await a_room.ready()
-            return await room.memberAll()
+            return await a_room.memberAll()
         '''.format(
             room_id=room_id,
         )
