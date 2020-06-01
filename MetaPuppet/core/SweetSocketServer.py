@@ -43,7 +43,7 @@ class SweetSocketServer(SocketServerCore):
         ts_code = '''
             const a_contact = bot.Contact.load('{}')
             await a_contact.ready()
-            return await a_contact.alias('{}')
+            return await a_contact.alias(`{}`)
         '''.format(username, remarkname)
         r = self.exec_wx_function(
             ts_code=ts_code,
@@ -112,7 +112,7 @@ class SweetSocketServer(SocketServerCore):
         ts_code = '''
             const a_contact = bot.Contact.load('{}')
             await a_contact.ready()
-            return await a_contact.alias('{}')
+            return await a_contact.alias(`{}`)
         '''.format(username, remarkname)
         r = await self.async_exec_wx_function(
             ts_code=ts_code,
